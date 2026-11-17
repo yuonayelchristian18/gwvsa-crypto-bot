@@ -1,13 +1,13 @@
 
+import csv
 import os
 import time
-import csv
 import requests
 import pandas as pd
 
-# ============================================================
-# GWVSA KRAKEN BOT - COMPLETE PAPER TRADING SCANNER
-# ============================================================
+# ==========================================
+# GWVSA KRAKEN PAPER SCANNER
+# ==========================================
 
 API_URL = "https://api.kraken.com"
 
@@ -20,21 +20,20 @@ MARKETS = [
     "DOGE/CAD",
 ]
 
-# Risk and position settings
 RISK_PER_TRADE_CAD = 2.00
 MAX_NOTIONAL_CAD = 15.00
 REWARD_RISK_RATIO = 2.0
 
-# Indicators
 EMA_FAST = 8
 EMA_MEDIUM = 40
 EMA_SLOW = 200
-RSI_PERIOD = 14
-VOLUME_PERIOD = 20
-ATR_PERIOD = 14
 
-# Keep this True. This version does not execute real orders.
-DRY_RUN = True
+RSI_PERIOD = 14
+ATR_PERIOD = 14
+VOLUME_PERIOD = 20
+
+MIN_CANDLES = 210
+MAX_CANDLES = 720
 
 CSV_FILE = "gwvsa_signals.csv"
 
@@ -44,119 +43,158 @@ session.headers.update({
 })
 
 
-# ============================================================
-# GENERAL API FUNCTION
-# ============================================================
+# ==========================================
+# KRAKEN API
+# ==========================================
 
 def api_get(endpoint, params=None):
+    url = API_URL + endpoint
 
-    response = session.get(
-        API_URL + endpoint,
-        params=params,
-        timeout=30
+    for attempt in range(3):
+        try:
+            response = session.get(
+                url,
+                params=params,
+                timeout=30
+            )
+            response.raise_for_status()
+
+            data = response.json()
+
+            if data.get("error"):
+                raise RuntimeError(
+                    "Kraken API error: " + str(data["error"])
+                )
+
+            return data.get("result", {})
+
+        except Exception as error:
+            print(
+                f"[API ERROR] Attempt {attempt + 1}: {error}"
+            )
+            time.sleep(2)
+
+    raise RuntimeError(
+        f"Could not retrieve Kraken endpoint: {endpoint}"
     )
 
-    response.raise_for_status()
 
-    data = response.json()
+# ==========================================
+# ASSET NAME NORMALIZATION
+# ==========================================
 
-    if data.get("error"):
-        raise RuntimeError(str(data["error"]))
-
-    return data["result"]
-
-
-# ============================================================
-# DISCOVER KRAKEN CAD MARKETS
-# ============================================================
-
-def discover_markets():
-
-    all_pairs = api_get("/0/public/AssetPairs")
-
-    discovered = {}
+def normalize_asset(asset):
+    asset = str(asset).upper()
 
     aliases = {
-        "XBT": ["XBT", "XXBT"],
-        "ETH": ["ETH", "XETH"],
-        "SOL": ["SOL"],
-        "XRP": ["XRP", "XXRP"],
-        "ADA": ["ADA"],
-        "DOGE": ["DOGE", "XDG"],
+        "XXBT": "BTC",
+        "XBT": "BTC",
+        "XETH": "ETH",
+        "XXRP": "XRP",
+        "XRP": "XRP",
+        "XDG": "DOGE",
+        "XXDG": "DOGE",
+        "ZCAD": "CAD",
+        "CAD": "CAD",
+        "ADA": "ADA",
+        "SOL": "SOL",
     }
 
-    for requested in MARKETS:
+    if asset in aliases:
+        return aliases[asset]
 
-        base, quote = requested.split("/")
+    # Kraken sometimes prefixes asset codes with X or Z.
+    if len(asset) > 3 and asset[0] in ("X", "Z"):
+        shortened = asset[1:]
+        if shortened in aliases:
+            return aliases[shortened]
 
-        matched = None
+    return asset
 
-        # First try Kraken's display name.
-        for pair_id, info in all_pairs.items():
 
-            if info.get("wsname") == requested:
-                matched = (pair_id, info)
-                break
+# ==========================================
+# ADA MARKET DIAGNOSTIC
+# ==========================================
 
-        # If display name does not match, try Kraken aliases.
-        if matched is None:
+def check_ada_markets(pairs):
+    print("\n======================================")
+    print("ADA MARKET CHECK")
+    print("======================================")
 
-            possible_names = set()
+    found = False
 
-            for base_alias in aliases.get(base, [base]):
+    for pair_id, info in pairs.items():
+        wsname = info.get("wsname", "")
+        altname = info.get("altname", "")
 
-                for quote_alias in [quote, "ZCAD"]:
+        base = normalize_asset(info.get("base", ""))
+        quote = normalize_asset(info.get("quote", ""))
 
-                    possible_names.add(
-                        base_alias + quote_alias
-                    )
+        if (
+            base == "ADA"
+            or "ADA" in wsname.upper()
+            or "ADA" in altname.upper()
+        ):
+            found = True
 
-            for pair_id, info in all_pairs.items():
-
-                altname = info.get("altname", "")
-
-                if altname in possible_names:
-                    matched = (pair_id, info)
-                    break
-
-        if matched is None:
-
-            print("[PAIR NOT FOUND]", requested)
-            continue
-
-        pair_id, info = matched
-
-        discovered[requested] = {
-            "id": pair_id,
-            "altname": info.get("altname", pair_id),
-            "ordermin": float(info.get("ordermin", 0)),
-            "costmin": float(info.get("costmin", 0)),
-            "lot_decimals": int(
-                info.get("lot_decimals", 8)
+            print(
+                f"Pair ID: {pair_id} | "
+                f"WebSocket name: {wsname} | "
+                f"Alt name: {altname} | "
+                f"Base: {base} | Quote: {quote}"
             )
-        }
+
+    if not found:
+        print("No ADA markets found in Kraken AssetPairs.")
+
+    print("======================================\n")
+
+
+# ==========================================
+# MARKET DISCOVERY
+# ==========================================
+
+def discover_markets(pairs):
+    discovered = {}
 
     print("\nDISCOVERED MARKETS:")
 
-    for name, details in discovered.items():
+    for requested in MARKETS:
+        requested_base, requested_quote = requested.split("/")
 
-        print(
-            name,
-            "->",
-            details["id"],
-            "| Kraken name:",
-            details["altname"]
-        )
+        target_base = normalize_asset(requested_base)
+        target_quote = normalize_asset(requested_quote)
+
+        matched = None
+
+        for pair_id, info in pairs.items():
+            base = normalize_asset(info.get("base", ""))
+            quote = normalize_asset(info.get("quote", ""))
+
+            if base == target_base and quote == target_quote:
+                matched = pair_id
+                break
+
+        if matched:
+            info = pairs[matched]
+
+            discovered[requested] = matched
+
+            print(
+                f"{requested} -> {matched} | "
+                f"Kraken name: {info.get('altname', '')}"
+            )
+        else:
+            print(f"[PAIR NOT FOUND] {requested}")
 
     return discovered
 
 
-# ============================================================
-# DOWNLOAD CANDLE DATA
-# ============================================================
+# ==========================================
+# OHLC DATA
+# ==========================================
 
-def get_candles(pair, interval):
-
+def get_ohlc(pair, interval):
     result = api_get(
         "/0/public/OHLC",
         {
@@ -165,19 +203,21 @@ def get_candles(pair, interval):
         }
     )
 
-    candle_key = next(
+    data_key = next(
         (key for key in result if key != "last"),
         None
     )
 
-    if candle_key is None:
-        return None
+    if not data_key:
+        raise ValueError(f"No OHLC data returned for {pair}")
 
-    rows = result[candle_key]
+    rows = result[data_key]
 
-    if len(rows) < 210:
-        print("[INSUFFICIENT CANDLES]", pair, interval)
-        return None
+    if len(rows) < MIN_CANDLES:
+        raise ValueError(
+            f"Not enough candles for {pair}, "
+            f"interval {interval}: {len(rows)}"
+        )
 
     df = pd.DataFrame(
         rows,
@@ -193,40 +233,42 @@ def get_candles(pair, interval):
         ]
     )
 
-    numeric_columns = [
-        "time",
+    for column in [
         "open",
         "high",
         "low",
         "close",
         "volume"
-    ]
-
-    for column in numeric_columns:
-
+    ]:
         df[column] = pd.to_numeric(
             df[column],
             errors="coerce"
         )
 
+    df["time"] = pd.to_numeric(
+        df["time"],
+        errors="coerce"
+    )
+
     df = df.dropna().reset_index(drop=True)
 
-    # Exclude the current incomplete candle.
-    if len(df) > 1:
-        df = df.iloc[:-1].copy()
+    # Kraken's last OHLC candle is still forming.
+    # Exclude it so signals use completed candles only.
+    df = df.iloc[:-1].copy()
 
-    if len(df) < 205:
-        return None
+    if len(df) < MIN_CANDLES:
+        raise ValueError(
+            f"Not enough completed candles for {pair}"
+        )
 
-    return df.reset_index(drop=True)
+    return df.tail(MAX_CANDLES).reset_index(drop=True)
 
 
-# ============================================================
-# INDICATORS
-# ============================================================
+# ==========================================
+# TECHNICAL INDICATORS
+# ==========================================
 
 def add_indicators(df):
-
     df = df.copy()
 
     df["ema8"] = df["close"].ewm(
@@ -244,29 +286,28 @@ def add_indicators(df):
         adjust=False
     ).mean()
 
-    # RSI
     delta = df["close"].diff()
 
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
+    gains = delta.clip(lower=0)
+    losses = -delta.clip(upper=0)
 
-    avg_gain = gain.ewm(
+    avg_gain = gains.ewm(
         alpha=1 / RSI_PERIOD,
-        adjust=False
+        adjust=False,
+        min_periods=RSI_PERIOD
     ).mean()
 
-    avg_loss = loss.ewm(
+    avg_loss = losses.ewm(
         alpha=1 / RSI_PERIOD,
-        adjust=False
+        adjust=False,
+        min_periods=RSI_PERIOD
     ).mean()
 
     rs = avg_gain / avg_loss.replace(0, float("nan"))
 
     df["rsi"] = 100 - (100 / (1 + rs))
-
     df["rsi"] = df["rsi"].fillna(50)
 
-    # ATR
     previous_close = df["close"].shift(1)
 
     true_range = pd.concat(
@@ -282,234 +323,197 @@ def add_indicators(df):
         ATR_PERIOD
     ).mean()
 
-    # Average volume
     df["volume_avg"] = df["volume"].rolling(
         VOLUME_PERIOD
     ).mean()
 
-    return df
+    return df.dropna().reset_index(drop=True)
 
 
-# ============================================================
+# ==========================================
 # TREND CONFIRMATION
-# ============================================================
+# ==========================================
 
-def check_trend(df, timeframe):
-
-    if df is None or len(df) < 205:
-        return False
-
-    df = add_indicators(df)
-
+def bullish_trend(df):
     last = df.iloc[-1]
 
-    bullish = (
+    return bool(
         last["close"] > last["ema200"]
         and last["ema8"] > last["ema40"]
         and last["ema40"] > last["ema200"]
     )
 
+
+def print_trend(label, df):
+    last = df.iloc[-1]
+
     print(
-        timeframe,
-        "Close:", round(last["close"], 6),
-        "EMA8:", round(last["ema8"], 6),
-        "EMA40:", round(last["ema40"], 6),
-        "EMA200:", round(last["ema200"], 6),
-        "RSI:", round(last["rsi"], 2),
-        "Bullish:", bullish
+        f"{label} Close: {last['close']:.8f} "
+        f"EMA8: {last['ema8']:.8f} "
+        f"EMA40: {last['ema40']:.8f} "
+        f"EMA200: {last['ema200']:.8f} "
+        f"RSI: {last['rsi']:.2f} "
+        f"Bullish: {bullish_trend(df)}"
     )
 
-    return bullish
 
-
-# ============================================================
+# ==========================================
 # BULLISH LIQUIDITY SWEEP
-# ============================================================
+# ==========================================
 
-def find_bullish_sweep(df, index):
+def find_bullish_sweep(df, lookback=10, recent=20):
+    """
+    Finds a candle that takes liquidity below
+    previous lows and closes back above that level.
+    """
 
-    if index < 20:
-        return None
+    start = max(lookback, len(df) - recent - 1)
 
-    previous = df.iloc[index - 20:index]
+    for i in range(len(df) - 2, start - 1, -1):
+        previous_low = df["low"].iloc[
+            i - lookback:i
+        ].min()
 
-    candle = df.iloc[index]
+        candle = df.iloc[i]
 
-    previous_low = previous["low"].min()
-
-    swept = (
-        candle["low"] < previous_low
-        and candle["close"] > previous_low
-    )
-
-    if swept:
-        return float(candle["low"])
-
-    return None
-
-
-def recent_bullish_sweep(df, end_index, lookback=10):
-
-    start = max(20, end_index - lookback)
-
-    for index in range(
-        end_index - 1,
-        start - 1,
-        -1
-    ):
-
-        sweep_low = find_bullish_sweep(df, index)
-
-        if sweep_low is not None:
-            return sweep_low
+        if (
+            candle["low"] < previous_low
+            and candle["close"] > previous_low
+            and candle["close"] > candle["open"]
+        ):
+            return {
+                "index": i,
+                "low": float(candle["low"]),
+                "level": float(previous_low)
+            }
 
     return None
 
 
-# ============================================================
-# 15-MINUTE STRUCTURE BREAK AND RETEST
-# ============================================================
+# ==========================================
+# 15-MINUTE STRUCTURE BREAK + RETEST
+# ==========================================
 
-def bullish_structure_retest(df):
+def check_15m_entry(df):
+    """
+    Approximation of the GWVSA sequence:
+    liquidity sweep -> structure break -> retest.
+    """
 
-    if df is None or len(df) < 220:
-        return None
-
-    df = add_indicators(df)
-
-    current_index = len(df) - 1
-    breakout_index = current_index - 1
-
-    current = df.iloc[current_index]
-    breakout = df.iloc[breakout_index]
-
-    # Recent liquidity sweep.
-    sweep_low = recent_bullish_sweep(
+    sweep = find_bullish_sweep(
         df,
-        breakout_index,
-        lookback=10
+        lookback=10,
+        recent=30
     )
 
-    if sweep_low is None:
-        print("[15M] No bullish liquidity sweep")
-        return None
+    if sweep is None:
+        return None, "No bullish liquidity sweep"
 
-    # Structure level before the breakout.
-    previous_structure = df.iloc[
-        breakout_index - 5:breakout_index
-    ]
+    sweep_index = sweep["index"]
 
-    structure_high = previous_structure["high"].max()
+    # Look for a structure break after the sweep.
+    breakout = None
 
-    # Bullish break of structure.
-    structure_break = (
-        breakout["close"] > structure_high
-        and breakout["close"] > breakout["open"]
-    )
+    for i in range(sweep_index + 1, len(df) - 1):
+        prior_start = max(0, i - 10)
 
-    if not structure_break:
+        structure_level = df["high"].iloc[
+            prior_start:i
+        ].max()
 
-        print("[15M] No bullish structure break")
-        return None
+        candle = df.iloc[i]
 
-    # Retest of broken structure.
+        if (
+            candle["close"] > structure_level
+            and candle["close"] > candle["open"]
+        ):
+            breakout = {
+                "index": i,
+                "level": float(structure_level)
+            }
+            break
+
+    if breakout is None:
+        return None, "No bullish structure break"
+
+    last = df.iloc[-1]
+
+    breakout_level = breakout["level"]
+
+    tolerance = float(last["atr"]) * 0.25
+
+    # Price must retest the breakout level and close above it.
     retest = (
-        current["low"] <= structure_high * 1.002
-        and current["close"] > structure_high
-        and current["close"] > current["open"]
+        last["low"] <= breakout_level + tolerance
+        and last["close"] > breakout_level
+        and last["close"] > last["open"]
     )
 
     if not retest:
+        return None, "No bullish retest"
 
-        print("[15M] No successful retest")
-        return None
+    if not (45 <= last["rsi"] <= 68):
+        return None, "15m RSI outside 45-68 range"
 
-    # RSI confirmation.
-    rsi_ok = (
-        45 <= current["rsi"] <= 68
-    )
-
-    if not rsi_ok:
-
-        print("[15M] RSI confirmation failed")
-        return None
-
-    # Breakout volume confirmation.
-    volume_ok = (
-        breakout["volume"] > breakout["volume_avg"]
-    )
-
-    if not volume_ok:
-
-        print("[15M] Volume confirmation failed")
-        return None
-
-    if pd.isna(current["atr"]) or current["atr"] <= 0:
-        print("[15M] ATR unavailable")
-        return None
+    if last["volume"] <= last["volume_avg"]:
+        return None, "Breakout volume not above average"
 
     return {
-        "sweep_low": float(sweep_low),
-        "structure": float(structure_high),
-        "atr": float(current["atr"]),
-        "rsi": float(current["rsi"]),
-        "candle_time": int(current["time"])
-    }
+        "sweep_low": sweep["low"],
+        "entry": float(last["close"]),
+        "atr": float(last["atr"]),
+        "candle_time": int(last["time"])
+    }, "15m entry confirmed"
 
 
-# ============================================================
+# ==========================================
 # 5-MINUTE CONFIRMATION
-# ============================================================
+# ==========================================
 
-def five_minute_confirmation(df):
+def check_5m_confirmation(df):
+    sweep = find_bullish_sweep(
+        df,
+        lookback=7,
+        recent=7
+    )
 
-    if df is None or len(df) < 30:
+    if sweep is None:
         return False
 
-    start = len(df) - 7
+    last = df.iloc[-1]
 
-    for index in range(start, len(df)):
-
-        if index < 20:
-            continue
-
-        if find_bullish_sweep(df, index) is not None:
-            print("[5M] Bullish liquidity confirmation found")
-            return True
-
-    print("[5M] No liquidity confirmation")
-
-    return False
+    return bool(
+        last["close"] > last["open"]
+    )
 
 
-# ============================================================
-# POSITION SIZING
-# ============================================================
+# ==========================================
+# POSITION SIZE AND TARGET
+# ==========================================
 
 def calculate_trade(entry, stop):
-
     risk_distance = entry - stop
 
     if risk_distance <= 0:
         return None
 
-    # Quantity based on planned risk.
-    risk_quantity = (
+    quantity_by_risk = (
         RISK_PER_TRADE_CAD / risk_distance
     )
 
-    # Limit the CAD value of the position.
-    allocation_quantity = (
+    quantity_by_allocation = (
         MAX_NOTIONAL_CAD / entry
     )
 
     quantity = min(
-        risk_quantity,
-        allocation_quantity
+        quantity_by_risk,
+        quantity_by_allocation
     )
 
-    notional = quantity * entry
+    if quantity <= 0:
+        return None
 
+    notional = quantity * entry
     planned_risk = quantity * risk_distance
 
     target = (
@@ -526,43 +530,42 @@ def calculate_trade(entry, stop):
     }
 
 
-# ============================================================
-# DUPLICATE SIGNAL CHECK
-# ============================================================
+# ==========================================
+# DUPLICATE CHECK
+# ==========================================
 
 def signal_already_logged(pair, candle_time):
-
     if not os.path.exists(CSV_FILE):
         return False
 
-    try:
+    with open(
+        CSV_FILE,
+        "r",
+        newline="",
+        encoding="utf-8"
+    ) as file:
 
-        with open(CSV_FILE, "r", newline="") as file:
+        reader = csv.DictReader(file)
 
-            reader = csv.DictReader(file)
-
-            for row in reader:
-
-                if (
-                    row.get("pair") == pair
-                    and row.get("candle_time") == str(candle_time)
-                ):
-                    return True
-
-    except Exception:
-        return False
+        for row in reader:
+            if (
+                row.get("pair") == pair
+                and row.get("candle_time") == str(candle_time)
+            ):
+                return True
 
     return False
 
 
-# ============================================================
+# ==========================================
 # SAVE SIGNAL
-# ============================================================
+# ==========================================
 
 def save_signal(signal):
+    file_exists = os.path.exists(CSV_FILE)
 
-    fields = [
-        "time",
+    fieldnames = [
+        "timestamp",
         "pair",
         "candle_time",
         "entry",
@@ -571,228 +574,173 @@ def save_signal(signal):
         "quantity",
         "notional",
         "planned_risk",
-        "rsi",
-        "status"
+        "reward_risk"
     ]
 
-    exists = os.path.exists(CSV_FILE)
-
-    with open(CSV_FILE, "a", newline="") as file:
+    with open(
+        CSV_FILE,
+        "a",
+        newline="",
+        encoding="utf-8"
+    ) as file:
 
         writer = csv.DictWriter(
             file,
-            fieldnames=fields
+            fieldnames=fieldnames
         )
 
-        if not exists:
+        if not file_exists:
             writer.writeheader()
 
         writer.writerow(signal)
 
 
-# ============================================================
+# ==========================================
 # SCAN ONE MARKET
-# ============================================================
+# ==========================================
 
-def scan_market(pair_name, pair_info):
-
+def scan_market(requested_pair, kraken_pair):
     print("\n======================================")
-    print("SCANNING:", pair_name)
+    print(f"SCANNING: {requested_pair}")
     print("======================================")
 
     try:
-
-        pair = pair_info["altname"]
-
-        # Download all four timeframes.
-        candles_4h = get_candles(pair, 240)
-        candles_1h = get_candles(pair, 60)
-        candles_15m = get_candles(pair, 15)
-        candles_5m = get_candles(pair, 5)
-
-        if any(
-            df is None
-            for df in [
-                candles_4h,
-                candles_1h,
-                candles_15m,
-                candles_5m
-            ]
-        ):
-
-            print("[SKIP] Candle data unavailable")
-            return
-
-        # 4H trend.
-        trend_4h = check_trend(
-            candles_4h,
-            "4H"
+        df_4h = add_indicators(
+            get_ohlc(kraken_pair, 240)
         )
 
-        # 1H trend.
-        trend_1h = check_trend(
-            candles_1h,
-            "1H"
+        df_1h = add_indicators(
+            get_ohlc(kraken_pair, 60)
         )
 
-        if not trend_4h:
-
-            print("[NO ENTRY] 4H trend failed")
-            return
-
-        if not trend_1h:
-
-            print("[NO ENTRY] 1H trend failed")
-            return
-
-        # 15M entry conditions.
-        setup = bullish_structure_retest(
-            candles_15m
+        df_15m = add_indicators(
+            get_ohlc(kraken_pair, 15)
         )
 
-        if setup is None:
-            print("[NO ENTRY] 15M setup failed")
-            return
-
-        # 5M liquidity confirmation.
-        if not five_minute_confirmation(candles_5m):
-            print("[NO ENTRY] 5M confirmation failed")
-            return
-
-        # Entry based on latest completed 15M candle.
-        latest = candles_15m.iloc[-1]
-
-        entry = float(latest["close"])
-
-        # Stop below liquidity sweep.
-        stop = (
-            setup["sweep_low"]
-            - setup["atr"] * 0.2
+        df_5m = add_indicators(
+            get_ohlc(kraken_pair, 5)
         )
-
-        trade = calculate_trade(
-            entry,
-            stop
-        )
-
-        if trade is None:
-
-            print("[SKIP] Invalid stop-loss")
-            return
-
-        # Respect Kraken's minimum volume and cost.
-        if trade["quantity"] < pair_info["ordermin"]:
-
-            print("[SKIP] Below Kraken minimum order volume")
-            return
-
-        if trade["notional"] < pair_info["costmin"]:
-
-            print("[SKIP] Below Kraken minimum order cost")
-            return
-
-        # Avoid recording the same candle twice
-        # when the CSV is available between runs.
-        if signal_already_logged(
-            pair_name,
-            setup["candle_time"]
-        ):
-
-            print("[DUPLICATE] Signal already logged")
-            return
-
-        signal = {
-            "time": time.strftime(
-                "%Y-%m-%d %H:%M:%S UTC",
-                time.gmtime()
-            ),
-
-            "pair": pair_name,
-
-            "candle_time": setup["candle_time"],
-
-            "entry": round(entry, 8),
-
-            "stop": round(trade["stop"], 8),
-
-            "target": round(trade["target"], 8),
-
-            "quantity": round(trade["quantity"], 8),
-
-            "notional": round(trade["notional"], 2),
-
-            "planned_risk": round(
-                trade["planned_risk"], 2
-            ),
-
-            "rsi": round(setup["rsi"], 2),
-
-            "status": "PAPER_SIGNAL"
-        }
-
-        save_signal(signal)
-
-        print("\n========== GWVSA SIGNAL ==========")
-
-        for key, value in signal.items():
-            print(key, ":", value)
-
-        print("==================================")
-
-        if DRY_RUN:
-            print("[DRY RUN] No real order was placed.")
 
     except Exception as error:
+        print(f"[DATA ERROR] {requested_pair}: {error}")
+        return
 
-        print("[ERROR]", pair_name, str(error))
+    print_trend("4H", df_4h)
+    print_trend("1H", df_1h)
+
+    if not bullish_trend(df_4h):
+        print("[NO ENTRY] 4H trend failed")
+        return
+
+    if not bullish_trend(df_1h):
+        print("[NO ENTRY] 1H trend failed")
+        return
+
+    entry_data, reason = check_15m_entry(df_15m)
+
+    if entry_data is None:
+        print(f"[NO ENTRY] {reason}")
+        return
+
+    print(f"[15M] {reason}")
+
+    if not check_5m_confirmation(df_5m):
+        print("[NO ENTRY] 5m confirmation failed")
+        return
+
+    print("[5M] Bullish confirmation passed")
+
+    entry = entry_data["entry"]
+
+    stop = (
+        entry_data["sweep_low"]
+        - 0.2 * entry_data["atr"]
+    )
+
+    trade = calculate_trade(entry, stop)
+
+    if trade is None:
+        print("[NO ENTRY] Invalid stop or position size")
+        return
+
+    candle_time = entry_data["candle_time"]
+
+    if signal_already_logged(
+        requested_pair,
+        candle_time
+    ):
+        print("[DUPLICATE] Signal already logged")
+        return
+
+    signal = {
+        "timestamp": int(time.time()),
+        "pair": requested_pair,
+        "candle_time": candle_time,
+        "entry": round(entry, 8),
+        "stop": round(trade["stop"], 8),
+        "target": round(trade["target"], 8),
+        "quantity": round(trade["quantity"], 8),
+        "notional": round(trade["notional"], 4),
+        "planned_risk": round(trade["planned_risk"], 4),
+        "reward_risk": REWARD_RISK_RATIO
+    }
+
+    save_signal(signal)
+
+    print("\n<==== GWVSA PAPER SIGNAL ====>")
+    print(f"Market: {requested_pair}")
+    print(f"Entry: {entry:.8f}")
+    print(f"Stop: {trade['stop']:.8f}")
+    print(f"Target: {trade['target']:.8f}")
+    print(f"Quantity: {trade['quantity']:.8f}")
+    print(f"Allocation: ${trade['notional']:.2f} CAD")
+    print(f"Planned risk: ${trade['planned_risk']:.2f} CAD")
+    print(f"Reward-to-risk: 1:{REWARD_RISK_RATIO}")
+    print("<============================>\n")
 
 
-# ============================================================
-# MAIN SCANNER
-# ============================================================
+# ==========================================
+# MAIN
+# ==========================================
 
 def main():
-
     print("\n======================================")
     print("       GWVSA KRAKEN SCANNER")
     print("======================================")
 
-    print("Mode:", "DRY RUN" if DRY_RUN else "LIVE")
-
-    print("Risk per trade: $", RISK_PER_TRADE_CAD)
-
-    print("Maximum allocation: $", MAX_NOTIONAL_CAD)
-
+    print("Mode: PAPER SCAN ONLY")
+    print(f"Risk per trade: ${RISK_PER_TRADE_CAD}")
+    print(f"Maximum allocation: ${MAX_NOTIONAL_CAD}")
     print("Daily trade limit: NONE")
+    print(f"Markets requested: {len(MARKETS)}")
 
-    print("Markets:", len(MARKETS))
+    try:
+        pairs = api_get("/0/public/AssetPairs")
 
-    print("======================================")
+        # Inspect ADA listings before discovering markets.
+        check_ada_markets(pairs)
 
-    markets = discover_markets()
+        markets = discover_markets(pairs)
 
-    if not markets:
+        if not markets:
+            print("[ERROR] No requested markets were found.")
+            return
 
-        print("[ERROR] No CAD markets discovered")
-        return
+        for requested_pair, kraken_pair in markets.items():
+            scan_market(
+                requested_pair,
+                kraken_pair
+            )
 
-    for pair_name in MARKETS:
+            # Small pause between market scans.
+            time.sleep(1)
 
-        pair_info = markets.get(pair_name)
-
-        if pair_info is None:
-            continue
-
-        scan_market(
-            pair_name,
-            pair_info
-        )
-
-        # Small pause between market scans.
-        time.sleep(1)
+    except Exception as error:
+        print(f"[SCANNER ERROR] {error}")
+        raise
 
     print("\n======================================")
-    print("GWVSA SCAN COMPLETED")
+    print("       GWVSA SCAN COMPLETED")
     print("======================================")
 
 
