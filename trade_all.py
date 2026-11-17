@@ -4,7 +4,7 @@ import urllib.parse
 import hashlib
 import hmac
 import base64
-from curl_cffi import requests
+import requests
 
 API_KEY = os.environ["KRAKEN_API_KEY"].strip()
 API_SEC = os.environ["KRAKEN_PRIVATE_KEY"].strip()
@@ -24,7 +24,11 @@ PROFIT_TARGET_PCT = 0.05
 TEST_MODE = True  # Change to False after test succeeds
 
 def kraken_public(endpoint):
-    resp = requests.get(f"{API_URL}{endpoint}", impersonate="chrome", timeout=15)
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; KrakenAPI/1.0)",
+    }
+    resp = requests.get(f"{API_URL}{endpoint}", headers=headers, timeout=15)
     try:
         return resp.json()
     except Exception:
@@ -44,8 +48,11 @@ def kraken_private(uri_path, data=None):
     headers = {
         "API-Key": API_KEY,
         "API-Sign": sigdigest,
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        "User-Agent": "Mozilla/5.0 (compatible; KrakenAPI/1.0)",
     }
-    resp = requests.post(API_URL + uri_path, headers=headers, data=data, impersonate="chrome", timeout=15)
+    resp = requests.post(API_URL + uri_path, headers=headers, data=postdata, timeout=15)
     try:
         return resp.json()
     except Exception:
