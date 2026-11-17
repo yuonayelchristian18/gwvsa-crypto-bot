@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pip install requests
+        run: pip install curl_cffi
       - name: Run Kraken Trading Bot
         env:
           KRAKEN_API_KEY: ${{ secrets.KRAKEN_API_KEY }}
