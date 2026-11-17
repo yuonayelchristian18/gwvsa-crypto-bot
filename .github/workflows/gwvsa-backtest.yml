@@ -1,1 +1,41 @@
 
+name: GWVSA Paper Trading
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gwvsa-paper-trading
+  cancel-in-progress: false
+
+jobs:
+  paper-trading:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run GWVSA paper trader
+        run: python trade_all.py
+
+      - name: Save account and trade history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gwvsa_state.json gwvsa_trades.csv
+          git diff --cached --quiet || git commit -m "Update GWVSA paper trading account"
+          git push
+
