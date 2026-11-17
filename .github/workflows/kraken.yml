@@ -1,10 +1,12 @@
-name: Test Kraken Connection
+name: Kraken Top 6 Bot
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
 
 jobs:
-  check-balance:
+  trade:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,8 +16,8 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install requests
-      - name: Run Kraken script
+      - name: Run Kraken Trading Bot
         env:
           KRAKEN_API_KEY: ${{ secrets.KRAKEN_API_KEY }}
           KRAKEN_PRIVATE_KEY: ${{ secrets.KRAKEN_PRIVATE_KEY }}
-        run: python check_balance.py
+        run: python trade_all.py
