@@ -1,0 +1,21 @@
+name: Test Kraken Connection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-balance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Run Kraken script
+        env:
+          KRAKEN_API_KEY: ${{ secrets.KRAKEN_API_KEY }}
+          KRAKEN_PRIVATE_KEY: ${{ secrets.KRAKEN_PRIVATE_KEY }}
+        run: python check_balance.py
