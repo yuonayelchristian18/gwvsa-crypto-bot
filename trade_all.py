@@ -8,7 +8,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA FLEXIBLE PAPER TRADING BOT
+# GWVSA PAPER TRADING BOT V4
 # Kraken public data ONLY. NO REAL ORDERS.
 # ============================================================
 
@@ -31,6 +31,10 @@ MARKETS = [
     "DOGE/CAD",
 ]
 
+MARKET_ALIASES = {
+    "DOGE/CAD": ["DOGE/CAD", "XDG/CAD"],
+}
+
 STATE_FILE = "gwvsa_state.json"
 TRADE_FILE = "gwvsa_trades.csv"
 
@@ -42,7 +46,7 @@ TRADE_HEADERS = [
 
 
 # ============================================================
-# KRAKEN DATA
+# KRAKEN API
 # ============================================================
 
 def api_get(endpoint, params=None):
@@ -51,7 +55,7 @@ def api_get(endpoint, params=None):
 
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "GWVSA-PaperTrader/3.0"}
+        headers={"User-Agent": "GWVSA-PaperTrader/4.0"}
     )
 
     with urllib.request.urlopen(request, timeout=25) as response:
@@ -78,7 +82,14 @@ def discover_markets():
     found = {}
 
     for requested in MARKETS:
-        wanted = normalize_pair(requested)
+        aliases = MARKET_ALIASES.get(
+            requested, [requested]
+        )
+
+        wanted = {
+            normalize_pair(alias)
+            for alias in aliases
+        }
 
         for pair_key, info in result.items():
             names = [
@@ -88,10 +99,12 @@ def discover_markets():
             ]
 
             if any(
-                normalize_pair(name) == wanted
+                normalize_pair(name) in wanted
                 for name in names if name
             ):
-                found[requested] = info.get("altname", pair_key)
+                found[requested] = info.get(
+                    "altname", pair_key
+                )
                 break
 
     return found, result
@@ -125,6 +138,16 @@ def get_candles(pair, interval):
         }
         for row in rows
     ]
+
+
+def get_ticker_price(pair):
+    result = api_get("Ticker", {"pair": pair})
+
+    if not result:
+        raise RuntimeError("Ticker returned no market data")
+
+    ticker = next(iter(result.values()))
+    return float(ticker["c"][0])
 
 
 # ============================================================
@@ -207,7 +230,6 @@ def trend_report(candles, timeframe):
     e8 = ema(closes, 8)
     e40 = ema(closes, 40)
     e200 = ema(closes, 200)
-
     previous_e8 = ema(closes[:-5], 8)
 
     if None in (e8, e40, e200, previous_e8):
@@ -221,24 +243,26 @@ def trend_report(candles, timeframe):
     short_trend = e8 > e40
 
     if timeframe == "1H":
-        # More flexible 1H confirmation.
-        bullish = (
-            price >= e200 * 0.995
-            and short_trend
-        ) or (
-            price > e200
-            and improving
+        # Flexible 1H: short-term momentum can pass
+        # even when price is below EMA200.
+        bullish = short_trend and improving
+
+        reason = (
+            "Supportive 1H momentum"
+            if bullish else "1H momentum rejected"
         )
 
     else:
-        # 4H remains a broader market filter,
-        # but does not require perfect EMA alignment.
+        # 4H is advisory only.
         bullish = (
-            price >= e200 * 0.985
-            and short_trend
+            price >= e200 * 0.985 and short_trend
         ) or (
-            price > e200
-            and improving
+            price > e200 and improving
+        )
+
+        reason = (
+            "Supportive 4H context"
+            if bullish else "Bearish 4H context - advisory only"
         )
 
     return {
@@ -248,8 +272,8 @@ def trend_report(candles, timeframe):
         "ema8": e8,
         "ema40": e40,
         "ema200": e200,
-        "reason": "Supportive trend" if bullish
-        else "Trend filter rejected"
+        "improving": improving,
+        "reason": reason
     }
 
 
@@ -260,11 +284,11 @@ def print_trend(market, timeframe, report):
         print(report["reason"])
         return
 
-    print(f"Price:  {report['price']:.8f}")
-    print(f"EMA 8:  {report['ema8']:.8f}")
-    print(f"EMA 40: {report['ema40']:.8f}")
-    print(f"EMA 200:{report['ema200']:.8f}")
-    print(f"Result: {report['reason']}")
+    print(f"Price:   {report['price']:.8f}")
+    print(f"EMA 8:   {report['ema8']:.8f}")
+    print(f"EMA 40:  {report['ema40']:.8f}")
+    print(f"EMA 200: {report['ema200']:.8f}")
+    print(f"Result:  {report['reason']}")
 
 
 # ============================================================
@@ -327,7 +351,7 @@ def log_trade(row):
 
 
 # ============================================================
-# FLEXIBLE GWVSA ENTRY
+# GWVSA ENTRY CHECK
 # ============================================================
 
 def check_gwvsa_entry(candles15, candles5):
@@ -346,14 +370,10 @@ def check_gwvsa_entry(candles15, candles5):
     if current_rsi is None or current_atr is None:
         return None, "RSI or ATR unavailable"
 
-    # Flexible RSI range.
     if not 30 <= current_rsi <= 75:
         return None, f"RSI rejected: {current_rsi:.2f}"
 
-    # --------------------------------------------------------
-    # SETUP A: Liquidity sweep and recovery
-    # --------------------------------------------------------
-
+    # Liquidity sweep and recovery.
     sweep_found = False
     swing_low = None
 
@@ -361,7 +381,6 @@ def check_gwvsa_entry(candles15, candles5):
 
     for i in range(start, len(candles15) - 1):
         previous = candles15[i - 10:i]
-
         prior_low = min(c["low"] for c in previous)
 
         if (
@@ -371,10 +390,7 @@ def check_gwvsa_entry(candles15, candles5):
             sweep_found = True
             swing_low = candles15[i]["low"]
 
-    # --------------------------------------------------------
-    # SETUP B: Structure break and retest
-    # --------------------------------------------------------
-
+    # Breakout and retest.
     previous_highs = [
         c["high"] for c in candles15[-9:-1]
     ]
@@ -388,14 +404,10 @@ def check_gwvsa_entry(candles15, candles5):
         and current["close"] > breakout_level
     )
 
-    # Accept either a sweep/recovery or a breakout/retest.
     if not sweep_found and not (structure_break and retest):
         return None, "No qualifying sweep or breakout/retest"
 
-    # --------------------------------------------------------
-    # 5-minute confirmation
-    # --------------------------------------------------------
-
+    # 5-minute confirmation.
     five = candles5[-1]
     previous_five = candles5[-2]
 
@@ -409,7 +421,6 @@ def check_gwvsa_entry(candles15, candles5):
     bullish_break = five["close"] > previous_five["high"]
     volume_confirmed = five["volume"] >= average_volume * 0.80
 
-    # Slightly flexible confirmation: two of three conditions.
     confirmations = sum([
         bullish_candle,
         bullish_break,
@@ -422,14 +433,12 @@ def check_gwvsa_entry(candles15, candles5):
             f"({confirmations}/3 conditions)"
         )
 
-    # Stop must be below the estimated entry.
     recent_low = min(c["low"] for c in candles15[-8:])
 
     if sweep_found:
         recent_low = min(recent_low, swing_low)
 
     stop = recent_low - (0.20 * current_atr)
-
     estimated_buy = current["close"] * (1 + SLIPPAGE)
 
     if stop >= estimated_buy:
@@ -505,6 +514,8 @@ def open_position(state, market, signal, latest_5m_time):
     state["last_signal"][market] = signal["candle_time"]
     state["last_processed_5m"][market] = latest_5m_time
 
+    save_state(state)
+
     log_trade([
         datetime.now(timezone.utc).isoformat(),
         market,
@@ -519,14 +530,14 @@ def open_position(state, market, signal, latest_5m_time):
     ])
 
     print("\n========== PAPER BUY ==========")
-    print(f"Market:       {market}")
-    print(f"Setup:        {signal['setup']}")
-    print(f"Quantity:     {quantity:.8f}")
-    print(f"Buy price:    {buy_price:.8f}")
-    print(f"Stop loss:    {stop:.8f}")
-    print(f"Take profit:  {target:.8f}")
-    print(f"Risk budget:  ${RISK_PER_TRADE:.2f} CAD")
-    print(f"Position cost:${total_cost:.4f} CAD")
+    print(f"Market:        {market}")
+    print(f"Setup:         {signal['setup']}")
+    print(f"Quantity:      {quantity:.8f}")
+    print(f"Buy price:     {buy_price:.8f}")
+    print(f"Stop loss:     {stop:.8f}")
+    print(f"Take profit:   {target:.8f}")
+    print(f"Risk budget:   ${RISK_PER_TRADE:.2f} CAD")
+    print(f"Position cost: ${total_cost:.4f} CAD")
     print("================================")
 
 
@@ -578,13 +589,65 @@ def close_position(state, market, exit_reference, reason):
     del state["positions"][market]
     state["last_processed_5m"].pop(market, None)
 
+    save_state(state)
 
-def manage_position(state, market, candles5):
-    if market not in state["positions"] or not candles5:
+
+# ============================================================
+# STOP-LOSS / TAKE-PROFIT MONITORING
+# ============================================================
+
+def manage_position(state, market, pair, candles5):
+    if market not in state["positions"]:
+        return
+
+    if not candles5:
+        print(f"{market}: cannot monitor - no 5m candles")
         return
 
     position = state["positions"][market]
     last_time = state["last_processed_5m"].get(market, 0)
+
+    if not last_time:
+        entry_time = position.get("entry_time", 0)
+
+        if entry_time:
+            last_time = int(entry_time)
+        else:
+            try:
+                current_price = get_ticker_price(pair)
+            except Exception:
+                current_price = candles5[-1]["close"]
+
+            print(f"WARNING {market}: no entry checkpoint")
+            close_position(
+                state, market, current_price,
+                "GAP_EXIT_NO_CHECKPOINT"
+            )
+            return
+
+    oldest_available = candles5[0]["time"]
+    latest_available = candles5[-1]["time"]
+
+    # If missed candles are older than available history,
+    # use a labelled current-market-price gap exit.
+    if last_time < oldest_available - 300:
+        print(
+            f"WARNING {market}: candle history gap "
+            "exceeds available history."
+        )
+
+        try:
+            current_price = get_ticker_price(pair)
+            reason = "GAP_EXIT_CURRENT_TICKER"
+        except Exception as error:
+            print("Ticker fallback error:", error)
+            current_price = candles5[-1]["close"]
+            reason = "GAP_EXIT_LAST_COMPLETED_CANDLE"
+
+        close_position(
+            state, market, current_price, reason
+        )
+        return
 
     new_candles = [
         c for c in candles5 if c["time"] > last_time
@@ -594,20 +657,17 @@ def manage_position(state, market, candles5):
         print(f"{market}: waiting for new 5m candle")
         return
 
-    oldest_available = candles5[0]["time"]
+    print(
+        f"{market}: replaying {len(new_candles)} "
+        "missed/new 5m candle(s)"
+    )
 
-    if last_time and last_time < oldest_available - 300:
-        print(
-            f"WARNING {market}: candle history gap. "
-            "No automatic exit made."
-        )
-        return
-
+    # Process every available candle chronologically.
     for candle in new_candles:
         stop_hit = candle["low"] <= position["stop"]
         target_hit = candle["high"] >= position["target"]
 
-        # Conservative assumption if both are hit in one candle.
+        # Stop first if both were reached in one candle.
         if stop_hit:
             close_position(
                 state, market, position["stop"], "STOP_LOSS"
@@ -621,8 +681,12 @@ def manage_position(state, market, candles5):
             return
 
         state["last_processed_5m"][market] = candle["time"]
+        save_state(state)
 
-    print(f"{market}: open position monitored")
+    print(
+        f"{market}: monitored through candle "
+        f"{latest_available}"
+    )
 
 
 # ============================================================
@@ -657,7 +721,7 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nGWVSA FLEXIBLE PAPER TRADING BOT")
+    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V4")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
 
@@ -682,6 +746,7 @@ def main():
             print(f"{market}: NOT FOUND")
 
     print("\nOther available CAD pairs:")
+
     cad_pairs = sorted({
         info.get("wsname", "")
         for info in all_pairs.values()
@@ -716,8 +781,10 @@ def main():
             if candles5:
                 latest_prices[market] = candles5[-1]["close"]
 
-            # Always manage existing positions first.
-            manage_position(state, market, candles5)
+            # Manage open positions before new entries.
+            manage_position(
+                state, market, pair, candles5
+            )
 
             if market in state["positions"]:
                 print(f"{market}: existing position remains open")
@@ -729,17 +796,26 @@ def main():
             print_trend(market, "1H", report1h)
             print_trend(market, "4H", report4h)
 
-            if not report1h["valid"] or not report4h["valid"]:
-                print(f"{market}: insufficient trend data")
+            if not report1h["valid"]:
+                print(f"{market}: insufficient 1H trend data")
                 continue
 
             if not report1h["bullish"]:
                 print(f"{market}: 1H trend rejected")
                 continue
 
-            if not report4h["bullish"]:
-                print(f"{market}: 4H trend rejected")
-                continue
+            # 4H is advisory, never a hard rejection.
+            if report4h["valid"] and not report4h["bullish"]:
+                print(
+                    f"{market}: 4H bearish warning; "
+                    "continuing to entry test."
+                )
+
+            if not report4h["valid"]:
+                print(
+                    f"{market}: 4H unavailable; "
+                    "continuing to entry test."
+                )
 
             signal, reason = check_gwvsa_entry(
                 candles15, candles5
