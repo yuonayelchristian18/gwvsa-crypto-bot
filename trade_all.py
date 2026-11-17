@@ -6,9 +6,10 @@ import hmac
 import base64
 import requests
 
-API_KEY = os.environ["KRAKEN_API_KEY"]
-API_SEC = os.environ["KRAKEN_PRIVATE_KEY"]
+API_KEY = os.environ["KRAKEN_API_KEY"].strip()
+API_SEC = os.environ["KRAKEN_PRIVATE_KEY"].strip()
 API_URL = "https://kraken.com"
+USER_AGENT = "KrakenTop6Bot/1.0"
 
 # --- TOP 6 HIGH-LIQUIDITY CAD PAIRS ---
 TOP_6_PAIRS = {
@@ -25,6 +26,14 @@ SPEND_PER_COIN_CAD = 15.0    # Amount in CAD to spend per coin
 PROFIT_TARGET_PCT = 0.05     # Sell when price is +5% above your last buy price
 TEST_MODE = True             # True = simulate safely. Change to False for LIVE REAL MONEY TRADES.
 
+def kraken_public(endpoint):
+    headers = {"User-Agent": USER_AGENT}
+    resp = requests.get(f"{API_URL}{endpoint}", headers=headers, timeout=15)
+    if not resp.text.strip():
+        print(f"Empty public response ({resp.status_code})")
+        return {}
+    return resp.json()
+
 def kraken_private(uri_path, data=None):
     if data is None:
         data = {}
@@ -35,17 +44,24 @@ def kraken_private(uri_path, data=None):
     mac = hmac.new(base64.b64decode(API_SEC), message, hashlib.sha512)
     sigdigest = base64.b64encode(mac.digest()).decode()
 
-    headers = {"API-Key": API_KEY, "API-Sign": sigdigest}
-    return requests.post(API_URL + uri_path, headers=headers, data=data).json()
+    headers = {
+        "API-Key": API_KEY,
+        "API-Sign": sigdigest,
+        "User-Agent": USER_AGENT,
+    }
+    resp = requests.post(API_URL + uri_path, headers=headers, data=data, timeout=15)
+    if not resp.text.strip():
+        print(f"Empty private response (HTTP {resp.status_code}): {resp.headers}")
+        return {"error": [f"HTTP {resp.status_code} empty response"]}
+    return resp.json()
 
 def get_pair_specs():
     joined = ",".join(TOP_6_PAIRS.keys())
-    resp = requests.get(f"{API_URL}/0/public/AssetPairs?pair={joined}").json()
-    return resp.get("result", {})
+    return kraken_public(f"/0/public/AssetPairs?pair={joined}").get("result", {})
 
 def get_current_prices():
     joined = ",".join(TOP_6_PAIRS.keys())
-    resp = requests.get(f"{API_URL}/0/public/Ticker?pair={joined}").json()
+    resp = kraken_public(f"/0/public/Ticker?pair={joined}")
     prices = {}
     for pair, info in resp.get("result", {}).items():
         prices[pair] = float(info["c"][0])
