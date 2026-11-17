@@ -23,7 +23,7 @@ TOP_6_PAIRS = {
 # --- STRATEGY & SAFETY SETTINGS ---
 SPEND_PER_COIN_CAD = 15.0    # Amount in CAD to spend per coin
 PROFIT_TARGET_PCT = 0.05     # Sell when price is +5% above your last buy price
-TEST_MODE = True             # True = simulate safely. False = LIVE REAL MONEY TRADES.
+TEST_MODE = True             # True = simulate safely. Change to False for LIVE REAL MONEY TRADES.
 
 def kraken_private(uri_path, data=None):
     if data is None:
@@ -48,7 +48,7 @@ def get_current_prices():
     resp = requests.get(f"{API_URL}/0/public/Ticker?pair={joined}").json()
     prices = {}
     for pair, info in resp.get("result", {}).items():
-        prices[pair] = float(info["c"])
+        prices[pair] = float(info["c"][0])
     return prices
 
 def get_last_buy_price(pair):
@@ -80,7 +80,7 @@ def run_top_6_bot():
         min_vol = float(specs[pair].get("ordermin", 0))
         decimals = specs[pair].get("lot_decimals", 8)
 
-        # 1. CHECK SELL CONDITION: Sell if holding coin AND price hit profit target
+        # 1. CHECK SELL CONDITION: Sell if holding coin AND price hit +5% profit
         if held_amount >= min_vol:
             last_buy = get_last_buy_price(pair)
             if last_buy and current_price >= last_buy * (1 + PROFIT_TARGET_PCT):
@@ -96,7 +96,7 @@ def run_top_6_bot():
                 print("Sell Response:", res)
                 continue
 
-        # 2. CHECK BUY CONDITION: Buy if not already holding and have enough CAD
+        # 2. CHECK BUY CONDITION: Buy if not holding and have enough CAD
         if held_amount < min_vol and cad_balance >= SPEND_PER_COIN_CAD:
             buy_vol = round(SPEND_PER_COIN_CAD / current_price, decimals)
             if buy_vol >= min_vol:
