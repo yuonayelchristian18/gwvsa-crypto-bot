@@ -4,35 +4,32 @@ import urllib.parse
 import hashlib
 import hmac
 import base64
-import requests
+from curl_cffi import requests
 
 API_KEY = os.environ["KRAKEN_API_KEY"].strip()
 API_SEC = os.environ["KRAKEN_PRIVATE_KEY"].strip()
 API_URL = "https://kraken.com"
-USER_AGENT = "KrakenTop6Bot/1.0"
 
-# --- TOP 6 HIGH-LIQUIDITY CAD PAIRS ---
 TOP_6_PAIRS = {
-    "XXBTZCAD": "XXBT",   # Bitcoin (BTC/CAD)
-    "XETHZCAD": "XETH",   # Ethereum (ETH/CAD)
-    "SOLCAD":   "SOL",    # Solana (SOL/CAD)
-    "XXRPZCAD": "XXRP",   # Ripple (XRP/CAD)
-    "ADACAD":   "ADA",    # Cardano (ADA/CAD)
-    "XDGZCAD":  "XXDG",   # Dogecoin (DOGE/CAD)
+    "XXBTZCAD": "XXBT",
+    "XETHZCAD": "XETH",
+    "SOLCAD":   "SOL",
+    "XXRPZCAD": "XXRP",
+    "ADACAD":   "ADA",
+    "XDGZCAD":  "XXDG",
 }
 
-# --- STRATEGY & SAFETY SETTINGS ---
-SPEND_PER_COIN_CAD = 15.0    # Amount in CAD to spend per coin
-PROFIT_TARGET_PCT = 0.05     # Sell when price is +5% above your last buy price
-TEST_MODE = True             # True = simulate safely. Change to False for LIVE REAL MONEY TRADES.
+SPEND_PER_COIN_CAD = 15.0
+PROFIT_TARGET_PCT = 0.05
+TEST_MODE = True  # Change to False after test succeeds
 
 def kraken_public(endpoint):
-    headers = {"User-Agent": USER_AGENT}
-    resp = requests.get(f"{API_URL}{endpoint}", headers=headers, timeout=15)
-    if not resp.text.strip():
-        print(f"Empty public response ({resp.status_code})")
+    resp = requests.get(f"{API_URL}{endpoint}", impersonate="chrome", timeout=15)
+    try:
+        return resp.json()
+    except Exception:
+        print(f"Public Error (HTTP {resp.status_code}): {resp.text[:200]}")
         return {}
-    return resp.json()
 
 def kraken_private(uri_path, data=None):
     if data is None:
@@ -47,13 +44,13 @@ def kraken_private(uri_path, data=None):
     headers = {
         "API-Key": API_KEY,
         "API-Sign": sigdigest,
-        "User-Agent": USER_AGENT,
     }
-    resp = requests.post(API_URL + uri_path, headers=headers, data=data, timeout=15)
-    if not resp.text.strip():
-        print(f"Empty private response (HTTP {resp.status_code}): {resp.headers}")
-        return {"error": [f"HTTP {resp.status_code} empty response"]}
-    return resp.json()
+    resp = requests.post(API_URL + uri_path, headers=headers, data=data, impersonate="chrome", timeout=15)
+    try:
+        return resp.json()
+    except Exception:
+        print(f"Private Error (HTTP {resp.status_code}): {resp.text[:200]}")
+        return {"error": [f"HTTP {resp.status_code} non-JSON response"]}
 
 def get_pair_specs():
     joined = ",".join(TOP_6_PAIRS.keys())
@@ -64,7 +61,7 @@ def get_current_prices():
     resp = kraken_public(f"/0/public/Ticker?pair={joined}")
     prices = {}
     for pair, info in resp.get("result", {}).items():
-        prices[pair] = float(info["c"][0])
+        prices[pair] = float(info["c"])
     return prices
 
 def get_last_buy_price(pair):
@@ -96,7 +93,6 @@ def run_top_6_bot():
         min_vol = float(specs[pair].get("ordermin", 0))
         decimals = specs[pair].get("lot_decimals", 8)
 
-        # 1. CHECK SELL CONDITION: Sell if holding coin AND price hit +5% profit
         if held_amount >= min_vol:
             last_buy = get_last_buy_price(pair)
             if last_buy and current_price >= last_buy * (1 + PROFIT_TARGET_PCT):
@@ -112,7 +108,6 @@ def run_top_6_bot():
                 print("Sell Response:", res)
                 continue
 
-        # 2. CHECK BUY CONDITION: Buy if not holding and have enough CAD
         if held_amount < min_vol and cad_balance >= SPEND_PER_COIN_CAD:
             buy_vol = round(SPEND_PER_COIN_CAD / current_price, decimals)
             if buy_vol >= min_vol:
