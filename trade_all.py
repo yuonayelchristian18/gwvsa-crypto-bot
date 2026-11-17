@@ -8,8 +8,8 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT
-# Kraken public market data only. NO REAL ORDERS.
+# GWVSA FLEXIBLE PAPER TRADING BOT
+# Kraken public data ONLY. NO REAL ORDERS.
 # ============================================================
 
 API = "https://api.kraken.com/0/public"
@@ -18,8 +18,8 @@ STARTING_BALANCE = 2000.00
 RISK_PER_TRADE = 2.00
 MAX_POSITION_VALUE = 15.00
 
-FEE_RATE = 0.001       # 0.10% per side
-SLIPPAGE = 0.0015      # 0.15% per side
+FEE_RATE = 0.001
+SLIPPAGE = 0.0015
 REWARD_RISK = 2.0
 
 MARKETS = [
@@ -35,16 +35,9 @@ STATE_FILE = "gwvsa_state.json"
 TRADE_FILE = "gwvsa_trades.csv"
 
 TRADE_HEADERS = [
-    "time_utc",
-    "market",
-    "side",
-    "quantity",
-    "entry_price",
-    "exit_price",
-    "stop_loss",
-    "take_profit",
-    "net_pnl_cad",
-    "result",
+    "time_utc", "market", "side", "quantity",
+    "entry_price", "exit_price", "stop_loss",
+    "take_profit", "net_pnl_cad", "result"
 ]
 
 
@@ -53,13 +46,12 @@ TRADE_HEADERS = [
 # ============================================================
 
 def api_get(endpoint, params=None):
-    params = params or {}
-    query = urllib.parse.urlencode(params)
+    query = urllib.parse.urlencode(params or {})
     url = f"{API}/{endpoint}?{query}"
 
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "GWVSA-PaperTrader/2.0"},
+        headers={"User-Agent": "GWVSA-PaperTrader/3.0"}
     )
 
     with urllib.request.urlopen(request, timeout=25) as response:
@@ -72,10 +64,8 @@ def api_get(endpoint, params=None):
 
 
 def normalize_pair(value):
-    """Normalize pair labels for comparison."""
     return (
-        str(value)
-        .upper()
+        str(value).upper()
         .replace("/", "")
         .replace("-", "")
         .replace("_", "")
@@ -84,10 +74,6 @@ def normalize_pair(value):
 
 
 def discover_markets():
-    """
-    Discover actual Kraken pair identifiers using AssetPairs.
-    Match the displayed wsname first, then base/quote assets.
-    """
     result = api_get("AssetPairs")
     found = {}
 
@@ -95,49 +81,50 @@ def discover_markets():
         wanted = normalize_pair(requested)
 
         for pair_key, info in result.items():
-            wsname = info.get("wsname", "")
-            altname = info.get("altname", pair_key)
+            names = [
+                info.get("wsname", ""),
+                info.get("altname", ""),
+                pair_key
+            ]
 
-            if wsname and normalize_pair(wsname) == wanted:
-                found[requested] = altname
+            if any(
+                normalize_pair(name) == wanted
+                for name in names if name
+            ):
+                found[requested] = info.get("altname", pair_key)
                 break
 
     return found, result
 
 
 def get_candles(pair, interval):
-    result = api_get(
-        "OHLC",
-        {"pair": pair, "interval": interval},
-    )
+    result = api_get("OHLC", {
+        "pair": pair,
+        "interval": interval
+    })
 
     candle_key = next(
         (key for key in result if key != "last"),
-        None,
+        None
     )
 
-    if candle_key is None:
+    if not candle_key:
         return []
 
-    rows = result[candle_key]
+    # Exclude the currently forming candle.
+    rows = result[candle_key][:-1]
 
-    # Kraken includes the currently forming candle.
-    # Use completed candles only.
-    rows = rows[:-1]
-
-    candles = []
-
-    for row in rows:
-        candles.append({
+    return [
+        {
             "time": int(row[0]),
             "open": float(row[1]),
             "high": float(row[2]),
             "low": float(row[3]),
             "close": float(row[4]),
-            "volume": float(row[6]),
-        })
-
-    return candles
+            "volume": float(row[6])
+        }
+        for row in rows
+    ]
 
 
 # ============================================================
@@ -148,13 +135,12 @@ def ema(values, period):
     if len(values) < period:
         return None
 
-    multiplier = 2.0 / (period + 1.0)
     result = sum(values[:period]) / period
+    multiplier = 2 / (period + 1)
 
     for price in values[period:]:
         result = (
-            (price - result) * multiplier
-            + result
+            (price - result) * multiplier + result
         )
 
     return result
@@ -171,17 +157,17 @@ def rsi(values, period=14):
 
     recent = changes[-period:]
 
-    gains = [max(change, 0) for change in recent]
-    losses = [max(-change, 0) for change in recent]
+    gains = [max(x, 0) for x in recent]
+    losses = [max(-x, 0) for x in recent]
 
-    average_gain = sum(gains) / period
-    average_loss = sum(losses) / period
+    avg_gain = sum(gains) / period
+    avg_loss = sum(losses) / period
 
-    if average_loss == 0:
+    if avg_loss == 0:
         return 100.0
 
-    rs = average_gain / average_loss
-    return 100.0 - (100.0 / (1.0 + rs))
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
 
 
 def atr(candles, period=14):
@@ -194,38 +180,66 @@ def atr(candles, period=14):
         current = candles[i]
         previous_close = candles[i - 1]["close"]
 
-        true_range = max(
+        ranges.append(max(
             current["high"] - current["low"],
             abs(current["high"] - previous_close),
-            abs(current["low"] - previous_close),
-        )
-
-        ranges.append(true_range)
+            abs(current["low"] - previous_close)
+        ))
 
     return sum(ranges[-period:]) / period
 
 
-def trend_report(candles):
+# ============================================================
+# FLEXIBLE TREND FILTER
+# ============================================================
+
+def trend_report(candles, timeframe):
     if len(candles) < 210:
         return {
             "valid": False,
-            "reason": f"Need 210 candles; received {len(candles)}",
+            "bullish": False,
+            "reason": f"Need 210 candles; received {len(candles)}"
         }
 
     closes = [c["close"] for c in candles]
 
+    price = closes[-1]
     e8 = ema(closes, 8)
     e40 = ema(closes, 40)
     e200 = ema(closes, 200)
-    price = closes[-1]
 
-    bullish = (
-        e8 is not None
-        and e40 is not None
-        and e200 is not None
-        and price > e200
-        and e8 > e40 > e200
-    )
+    previous_e8 = ema(closes[:-5], 8)
+
+    if None in (e8, e40, e200, previous_e8):
+        return {
+            "valid": False,
+            "bullish": False,
+            "reason": "Indicator data unavailable"
+        }
+
+    improving = e8 > previous_e8
+    short_trend = e8 > e40
+
+    if timeframe == "1H":
+        # More flexible 1H confirmation.
+        bullish = (
+            price >= e200 * 0.995
+            and short_trend
+        ) or (
+            price > e200
+            and improving
+        )
+
+    else:
+        # 4H remains a broader market filter,
+        # but does not require perfect EMA alignment.
+        bullish = (
+            price >= e200 * 0.985
+            and short_trend
+        ) or (
+            price > e200
+            and improving
+        )
 
     return {
         "valid": True,
@@ -234,37 +248,33 @@ def trend_report(candles):
         "ema8": e8,
         "ema40": e40,
         "ema200": e200,
-        "reason": (
-            "Bullish: price above EMA200 and EMA8 > EMA40 > EMA200"
-            if bullish
-            else "Rejected: bullish EMA alignment not satisfied"
-        ),
+        "reason": "Supportive trend" if bullish
+        else "Trend filter rejected"
     }
 
 
 def print_trend(market, timeframe, report):
-    print(f"\n{market} - {timeframe} TREND")
+    print(f"\n{market} - {timeframe}")
 
     if not report["valid"]:
-        print("  ", report["reason"])
+        print(report["reason"])
         return
 
-    print(f"  Price:  {report['price']:.8f}")
-    print(f"  EMA 8:  {report['ema8']:.8f}")
-    print(f"  EMA 40: {report['ema40']:.8f}")
-    print(f"  EMA 200:{report['ema200']:.8f}")
-    print(f"  Result: {report['reason']}")
+    print(f"Price:  {report['price']:.8f}")
+    print(f"EMA 8:  {report['ema8']:.8f}")
+    print(f"EMA 40: {report['ema40']:.8f}")
+    print(f"EMA 200:{report['ema200']:.8f}")
+    print(f"Result: {report['reason']}")
 
 
 # ============================================================
-# PAPER ACCOUNT FILES
+# ACCOUNT FILES
 # ============================================================
 
 def ensure_trade_file():
     if not os.path.exists(TRADE_FILE):
         with open(TRADE_FILE, "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(TRADE_HEADERS)
+            csv.writer(file).writerow(TRADE_HEADERS)
 
 
 def load_state():
@@ -280,17 +290,22 @@ def load_state():
             "total_trades": 0,
             "winning_trades": 0,
             "losing_trades": 0,
-            "realized_pnl": 0.0,
+            "realized_pnl": 0.0
         }
 
-    state.setdefault("cash", STARTING_BALANCE)
-    state.setdefault("positions", {})
-    state.setdefault("last_signal", {})
-    state.setdefault("last_processed_5m", {})
-    state.setdefault("total_trades", 0)
-    state.setdefault("winning_trades", 0)
-    state.setdefault("losing_trades", 0)
-    state.setdefault("realized_pnl", 0.0)
+    defaults = {
+        "cash": STARTING_BALANCE,
+        "positions": {},
+        "last_signal": {},
+        "last_processed_5m": {},
+        "total_trades": 0,
+        "winning_trades": 0,
+        "losing_trades": 0,
+        "realized_pnl": 0.0
+    }
+
+    for key, value in defaults.items():
+        state.setdefault(key, value)
 
     return state
 
@@ -308,34 +323,22 @@ def log_trade(row):
     ensure_trade_file()
 
     with open(TRADE_FILE, "a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(row)
+        csv.writer(file).writerow(row)
 
 
 # ============================================================
-# GWVSA ENTRY CONDITIONS
+# FLEXIBLE GWVSA ENTRY
 # ============================================================
 
 def check_gwvsa_entry(candles15, candles5):
-    """
-    Simplified GWVSA entry:
-    1. Recent liquidity sweep below a prior low.
-    2. Recovery above the swept level.
-    3. Break of structure.
-    4. Retest of the breakout level.
-    5. Bullish 5-minute candle with volume confirmation.
-
-    This is an approximation, not a full SMT or double-bottom detector.
-    """
-
     if len(candles15) < 30:
         return None, "Not enough 15m candles"
 
     if len(candles5) < 25:
         return None, "Not enough 5m candles"
 
-    closes = [c["close"] for c in candles15]
     current = candles15[-1]
+    closes = [c["close"] for c in candles15]
 
     current_rsi = rsi(closes)
     current_atr = atr(candles15)
@@ -343,93 +346,111 @@ def check_gwvsa_entry(candles15, candles5):
     if current_rsi is None or current_atr is None:
         return None, "RSI or ATR unavailable"
 
-    if not 35 <= current_rsi <= 70:
-        return None, f"RSI filter rejected: {current_rsi:.2f}"
+    # Flexible RSI range.
+    if not 30 <= current_rsi <= 75:
+        return None, f"RSI rejected: {current_rsi:.2f}"
 
-    # Find a recent sweep in the previous eight completed candles.
-    sweep_index = None
+    # --------------------------------------------------------
+    # SETUP A: Liquidity sweep and recovery
+    # --------------------------------------------------------
+
+    sweep_found = False
     swing_low = None
 
     start = max(10, len(candles15) - 9)
-    end = len(candles15) - 1
 
-    for i in range(start, end):
-        earlier = candles15[i - 10:i]
+    for i in range(start, len(candles15) - 1):
+        previous = candles15[i - 10:i]
 
-        if len(earlier) < 5:
-            continue
-
-        prior_low = min(c["low"] for c in earlier)
+        prior_low = min(c["low"] for c in previous)
 
         if (
             candles15[i]["low"] < prior_low
             and candles15[i]["close"] > prior_low
         ):
-            sweep_index = i
-            swing_low = prior_low
+            sweep_found = True
+            swing_low = candles15[i]["low"]
 
-    if sweep_index is None:
-        return None, "No recent liquidity sweep"
+    # --------------------------------------------------------
+    # SETUP B: Structure break and retest
+    # --------------------------------------------------------
 
-    after_sweep = candles15[sweep_index + 1:-1]
+    previous_highs = [
+        c["high"] for c in candles15[-9:-1]
+    ]
 
-    if not after_sweep:
-        return None, "No candles after liquidity sweep"
+    breakout_level = max(previous_highs)
 
-    breakout_level = max(
-        candle["high"] for candle in after_sweep
+    structure_break = current["close"] > breakout_level
+
+    retest = (
+        current["low"] <= breakout_level * 1.005
+        and current["close"] > breakout_level
     )
 
-    if current["close"] <= breakout_level:
-        return None, "No 15m structure break"
+    # Accept either a sweep/recovery or a breakout/retest.
+    if not sweep_found and not (structure_break and retest):
+        return None, "No qualifying sweep or breakout/retest"
 
-    if current["low"] > breakout_level * 1.003:
-        return None, "No 15m retest"
+    # --------------------------------------------------------
+    # 5-minute confirmation
+    # --------------------------------------------------------
 
-    # Latest completed 5m candle confirmation.
     five = candles5[-1]
+    previous_five = candles5[-2]
 
     previous_volumes = [
         c["volume"] for c in candles5[-21:-1]
     ]
 
-    if len(previous_volumes) < 20:
-        return None, "Not enough volume history"
-
     average_volume = sum(previous_volumes) / len(previous_volumes)
 
-    if five["close"] <= five["open"]:
-        return None, "5m candle is not bullish"
+    bullish_candle = five["close"] > five["open"]
+    bullish_break = five["close"] > previous_five["high"]
+    volume_confirmed = five["volume"] >= average_volume * 0.80
 
-    if five["volume"] < average_volume:
-        return None, "5m volume below average"
+    # Slightly flexible confirmation: two of three conditions.
+    confirmations = sum([
+        bullish_candle,
+        bullish_break,
+        volume_confirmed
+    ])
 
-    stop = min(current["low"], swing_low) - (
-        0.25 * current_atr
-    )
+    if confirmations < 2:
+        return None, (
+            f"5m confirmation rejected "
+            f"({confirmations}/3 conditions)"
+        )
 
-    reference_entry = current["close"]
-    estimated_buy = reference_entry * (1 + SLIPPAGE)
+    # Stop must be below the estimated entry.
+    recent_low = min(c["low"] for c in candles15[-8:])
+
+    if sweep_found:
+        recent_low = min(recent_low, swing_low)
+
+    stop = recent_low - (0.20 * current_atr)
+
+    estimated_buy = current["close"] * (1 + SLIPPAGE)
 
     if stop >= estimated_buy:
-        return None, "Stop price is not below entry"
+        return None, "Invalid stop-loss"
 
     return {
         "candle_time": current["time"],
-        "entry_reference": reference_entry,
+        "entry_reference": current["close"],
         "stop": stop,
         "atr": current_atr,
         "rsi": current_rsi,
-    }, "Valid GWVSA entry"
+        "setup": "SWEEP" if sweep_found else "BREAKOUT_RETEST"
+    }, "Flexible GWVSA entry confirmed"
 
 
 # ============================================================
-# PAPER BUY AND SELL
+# PAPER BUY
 # ============================================================
 
 def open_position(state, market, signal, latest_5m_time):
     if market in state["positions"]:
-        print(f"{market}: already has an open paper position")
         return
 
     buy_price = signal["entry_reference"] * (1 + SLIPPAGE)
@@ -438,7 +459,7 @@ def open_position(state, market, signal, latest_5m_time):
     risk_per_unit = buy_price - stop
 
     if risk_per_unit <= 0:
-        print(f"{market}: invalid position risk")
+        print(f"{market}: invalid risk")
         return
 
     quantity_by_risk = RISK_PER_TRADE / risk_per_unit
@@ -451,7 +472,7 @@ def open_position(state, market, signal, latest_5m_time):
     quantity = min(
         quantity_by_risk,
         quantity_by_allocation,
-        affordable_quantity,
+        affordable_quantity
     )
 
     if quantity <= 0:
@@ -463,38 +484,55 @@ def open_position(state, market, signal, latest_5m_time):
     total_cost = notional + entry_fee
 
     if total_cost > state["cash"]:
-        print(f"{market}: insufficient paper cash after fee")
+        print(f"{market}: insufficient cash after fee")
         return
 
-    target = buy_price + (
-        risk_per_unit * REWARD_RISK
-    )
+    target = buy_price + risk_per_unit * REWARD_RISK
 
     state["cash"] -= total_cost
 
-    state["positions"][market] = {
+    position = {
         "quantity": quantity,
         "entry": buy_price,
         "stop": stop,
         "target": target,
         "entry_cost": total_cost,
         "entry_time": int(time.time()),
-        "signal_time": signal["candle_time"],
+        "signal_time": signal["candle_time"]
     }
 
+    state["positions"][market] = position
     state["last_signal"][market] = signal["candle_time"]
     state["last_processed_5m"][market] = latest_5m_time
 
+    log_trade([
+        datetime.now(timezone.utc).isoformat(),
+        market,
+        "BUY",
+        round(quantity, 8),
+        round(buy_price, 8),
+        "",
+        round(stop, 8),
+        round(target, 8),
+        "",
+        "OPEN_" + signal["setup"]
+    ])
+
     print("\n========== PAPER BUY ==========")
     print(f"Market:       {market}")
+    print(f"Setup:        {signal['setup']}")
     print(f"Quantity:     {quantity:.8f}")
     print(f"Buy price:    {buy_price:.8f}")
     print(f"Stop loss:    {stop:.8f}")
     print(f"Take profit:  {target:.8f}")
-    print(f"Entry fee:    ${entry_fee:.4f} CAD")
+    print(f"Risk budget:  ${RISK_PER_TRADE:.2f} CAD")
     print(f"Position cost:${total_cost:.4f} CAD")
     print("================================")
 
+
+# ============================================================
+# PAPER SELL
+# ============================================================
 
 def close_position(state, market, exit_reference, reason):
     position = state["positions"][market]
@@ -506,9 +544,7 @@ def close_position(state, market, exit_reference, reason):
     state["cash"] += proceeds - exit_fee
 
     net_pnl = (
-        proceeds
-        - exit_fee
-        - position["entry_cost"]
+        proceeds - exit_fee - position["entry_cost"]
     )
 
     state["realized_pnl"] += net_pnl
@@ -529,14 +565,13 @@ def close_position(state, market, exit_reference, reason):
         round(position["stop"], 8),
         round(position["target"], 8),
         round(net_pnl, 4),
-        reason,
+        reason
     ])
 
     print("\n========== PAPER SELL ==========")
     print(f"Market:       {market}")
     print(f"Reason:       {reason}")
     print(f"Sell price:   {sell_price:.8f}")
-    print(f"Exit fee:     ${exit_fee:.4f} CAD")
     print(f"NET P/L:      ${net_pnl:.4f} CAD")
     print("================================")
 
@@ -545,31 +580,26 @@ def close_position(state, market, exit_reference, reason):
 
 
 def manage_position(state, market, candles5):
-    if market not in state["positions"]:
-        return
-
-    if not candles5:
+    if market not in state["positions"] or not candles5:
         return
 
     position = state["positions"][market]
     last_time = state["last_processed_5m"].get(market, 0)
 
     new_candles = [
-        candle for candle in candles5
-        if candle["time"] > last_time
+        c for c in candles5 if c["time"] > last_time
     ]
 
     if not new_candles:
-        print(f"{market}: no new completed 5m candle for exit check")
+        print(f"{market}: waiting for new 5m candle")
         return
 
     oldest_available = candles5[0]["time"]
 
-    # Avoid pretending we checked stop/target levels when data is missing.
     if last_time and last_time < oldest_available - 300:
         print(
-            f"WARNING {market}: 5m history gap detected. "
-            "Position not automatically closed."
+            f"WARNING {market}: candle history gap. "
+            "No automatic exit made."
         )
         return
 
@@ -577,28 +607,22 @@ def manage_position(state, market, candles5):
         stop_hit = candle["low"] <= position["stop"]
         target_hit = candle["high"] >= position["target"]
 
-        # If both levels were touched in one candle, assume stop first.
+        # Conservative assumption if both are hit in one candle.
         if stop_hit:
             close_position(
-                state,
-                market,
-                position["stop"],
-                "STOP_LOSS",
+                state, market, position["stop"], "STOP_LOSS"
             )
             return
 
         if target_hit:
             close_position(
-                state,
-                market,
-                position["target"],
-                "TAKE_PROFIT",
+                state, market, position["target"], "TAKE_PROFIT"
             )
             return
 
         state["last_processed_5m"][market] = candle["time"]
 
-    print(f"{market}: open paper position monitored")
+    print(f"{market}: open position monitored")
 
 
 # ============================================================
@@ -618,16 +642,14 @@ def print_status(state, latest_prices):
     open_value = 0.0
 
     for market, position in state["positions"].items():
-        mark_price = latest_prices.get(
-            market, position["entry"]
-        )
-        open_value += position["quantity"] * mark_price
+        price = latest_prices.get(market, position["entry"])
+        open_value += position["quantity"] * price
 
     equity = state["cash"] + open_value
 
     print(f"Open position value: ${open_value:.2f} CAD")
     print(f"Estimated equity:    ${equity:.2f} CAD")
-    print("=========================================\n")
+    print("=========================================")
 
 
 # ============================================================
@@ -635,7 +657,7 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nStarting GWVSA PAPER TRADING BOT")
+    print("\nGWVSA FLEXIBLE PAPER TRADING BOT")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
 
@@ -646,12 +668,12 @@ def main():
     try:
         pairs, all_pairs = discover_markets()
     except Exception as error:
-        print("Could not load Kraken market list:", error)
+        print("Kraken market discovery error:", error)
         save_state(state)
         print_status(state, latest_prices)
         return
 
-    print("\n========== KRAKEN MARKET DISCOVERY ==========")
+    print("\n========== MARKET DISCOVERY ==========")
 
     for market in MARKETS:
         if market in pairs:
@@ -659,8 +681,7 @@ def main():
         else:
             print(f"{market}: NOT FOUND")
 
-    print("\nOther available CAD pairs on Kraken:")
-
+    print("\nOther available CAD pairs:")
     cad_pairs = sorted({
         info.get("wsname", "")
         for info in all_pairs.values()
@@ -668,18 +689,16 @@ def main():
     })
 
     for name in cad_pairs[:40]:
-        print(" ", name)
-
-    print("=============================================\n")
+        print(name)
 
     for market in MARKETS:
         pair = pairs.get(market)
 
         if not pair:
-            print(f"{market}: skipped - pair not discovered")
+            print(f"{market}: skipped - Kraken pair not found")
             continue
 
-        print(f"\n\n########## CHECKING {market} ##########")
+        print(f"\n######## CHECKING {market} ########")
 
         try:
             candles5 = get_candles(pair, 5)
@@ -687,48 +706,46 @@ def main():
             candles60 = get_candles(pair, 60)
             candles240 = get_candles(pair, 240)
 
-            if candles5:
-                latest_prices[market] = candles5[-1]["close"]
-
             print(
-                f"Completed candles: "
-                f"5m={len(candles5)}, "
+                f"Candles: 5m={len(candles5)}, "
                 f"15m={len(candles15)}, "
                 f"1H={len(candles60)}, "
                 f"4H={len(candles240)}"
             )
 
-            # Check exits before looking for new entries.
+            if candles5:
+                latest_prices[market] = candles5[-1]["close"]
+
+            # Always manage existing positions first.
             manage_position(state, market, candles5)
 
             if market in state["positions"]:
                 print(f"{market}: existing position remains open")
                 continue
 
-            report1h = trend_report(candles60)
-            report4h = trend_report(candles240)
+            report1h = trend_report(candles60, "1H")
+            report4h = trend_report(candles240, "4H")
 
             print_trend(market, "1H", report1h)
             print_trend(market, "4H", report4h)
 
             if not report1h["valid"] or not report4h["valid"]:
-                print(f"{market}: rejected because trend data is insufficient")
+                print(f"{market}: insufficient trend data")
                 continue
 
             if not report1h["bullish"]:
-                print(f"{market}: ENTRY REJECTED - 1H trend is not bullish")
+                print(f"{market}: 1H trend rejected")
                 continue
 
             if not report4h["bullish"]:
-                print(f"{market}: ENTRY REJECTED - 4H trend is not bullish")
+                print(f"{market}: 4H trend rejected")
                 continue
 
             signal, reason = check_gwvsa_entry(
-                candles15,
-                candles5,
+                candles15, candles5
             )
 
-            print(f"{market}: GWVSA entry check: {reason}")
+            print(f"{market}: ENTRY CHECK: {reason}")
 
             if not signal:
                 continue
@@ -737,22 +754,25 @@ def main():
                 state["last_signal"].get(market)
                 == signal["candle_time"]
             ):
-                print(f"{market}: this signal was already processed")
+                print(f"{market}: signal already processed")
                 continue
 
             open_position(
                 state,
                 market,
                 signal,
-                candles5[-1]["time"],
+                candles5[-1]["time"]
             )
 
         except Exception as error:
-            print(f"{market}: ERROR: {type(error).__name__}: {error}")
+            print(
+                f"{market}: ERROR: "
+                f"{type(error).__name__}: {error}"
+            )
 
     save_state(state)
     print_status(state, latest_prices)
-    print("GWVSA paper trading run completed.")
+    print("\nGWVSA paper trading run completed.")
 
 
 if __name__ == "__main__":
