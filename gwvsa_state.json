@@ -1,33 +1,6 @@
 {
-  "cash": 1863.987702576886,
-  "positions": {
-    "VVV/USD": {
-      "quantity": 1.921039986642488,
-      "entry": 30.821013052829993,
-      "stop": 29.87044233685714,
-      "target": 32.82788053294489,
-      "risk": 0.9505707159728551,
-      "atr": 0.24510566571428555,
-      "tier": "SMALL",
-      "target_profit": 3.67,
-      "entry_cost": 59.267606901819796,
-      "entry_time": 1794995025,
-      "signal_time": 1794993300
-    },
-    "USELESS/USD": {
-      "quantity": 342.25776160293384,
-      "entry": 0.1402811727317,
-      "stop": 0.13484746498857142,
-      "target": 0.15534085276503998,
-      "risk": 0.0054337077431285685,
-      "atr": 0.0014094085571428586,
-      "tier": "SMALL",
-      "target_profit": 5.0,
-      "entry_cost": 48.060332494360345,
-      "entry_time": 1794998426,
-      "signal_time": 1794996900
-    }
-  },
+  "cash": 1967.3156419730662,
+  "positions": {},
   "last_signal": {
     "XBT/CAD": 1794979800,
     "XRP/CAD": 1794972600,
@@ -53,12 +26,9 @@
     "ICNT/USD": 1795007700,
     "BLESS/USD": 1795011300
   },
-  "last_processed_5m": {
-    "VVV/USD": 1795015200,
-    "USELESS/USD": 1795015200
-  },
-  "total_trades": 27,
+  "last_processed_5m": {},
+  "total_trades": 29,
   "winning_trades": 6,
-  "losing_trades": 21,
-  "realized_pnl": -28.6843580269336
+  "losing_trades": 23,
+  "realized_pnl": -32.68435802693362
 }
