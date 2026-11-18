@@ -7,7 +7,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V5
+# GWVSA PAPER TRADING BOT V5.2
 # Kraken public data ONLY. NO REAL ORDERS.
 # ============================================================
 
@@ -395,24 +395,27 @@ def check_gwvsa_entry(candles15, candles5):
 
     breakout_ok = structure_break and (retest or not REQUIRE_RETEST)
 
-    # Momentum setup: 15m EMA 8 above EMA 20, price above EMA 8,
-    # RSI in a healthy range (not overbought).
+    # Momentum setup: price above 15m EMA 20 with healthy RSI.
+    e8_15 = ema(closes, 8)
+    e20_15 = ema(closes, 20)
     momentum_setup = False
 
     if ALLOW_MOMENTUM_ENTRY and not sweep_found and not breakout_ok:
-        e8_15 = ema(closes, 8)
-        e20_15 = ema(closes, 20)
-
         if (
-            e8_15 and e20_15
-            and e8_15 > e20_15
-            and current["close"] > e8_15
-            and 45 <= current_rsi <= 70
+            e20_15
+            and current["close"] > e20_15
+            and 40 <= current_rsi <= 75
         ):
             momentum_setup = True
 
     if not sweep_found and not breakout_ok and not momentum_setup:
-        return None, "No qualifying sweep, breakout or momentum setup"
+        return None, (
+            "No qualifying sweep, breakout or momentum setup "
+            f"(RSI {current_rsi:.1f}, "
+            f"close {current['close']:.6g}, "
+            f"15m EMA8 {e8_15:.6g}, EMA20 {e20_15:.6g}, "
+            f"breakout level {breakout_level:.6g})"
+        )
 
     # 5-minute confirmation.
     five = candles5[-1]
@@ -725,7 +728,7 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V5")
+    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V5.2")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
 
