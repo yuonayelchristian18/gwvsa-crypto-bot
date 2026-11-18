@@ -1,4 +1,3 @@
-
 import csv
 import json
 import os
@@ -8,7 +7,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V4
+# GWVSA PAPER TRADING BOT V5
 # Kraken public data ONLY. NO REAL ORDERS.
 # ============================================================
 
@@ -22,13 +21,23 @@ FEE_RATE = 0.001
 SLIPPAGE = 0.0015
 REWARD_RISK = 2.0
 
+# Entry filter settings (easy to tune)
+RSI_MIN = 30
+RSI_MAX = 80          # was 75
+MIN_CONFIRMATIONS = 2  # out of 3 on the 5m chart
+
+# Set FORCE_TEST_TRADE=1 in the environment to open one test
+# paper trade on FORCE_TEST_MARKET, ignoring all filters.
+FORCE_TEST_TRADE = os.environ.get("FORCE_TEST_TRADE") == "1"
+FORCE_TEST_MARKET = "SOL/CAD"
+
 MARKETS = [
     "XBT/CAD",
     "ETH/CAD",
     "SOL/CAD",
     "XRP/CAD",
-    "ADA/CAD",
     "DOGE/CAD",
+    "PEPE/CAD",
 ]
 
 MARKET_ALIASES = {
@@ -55,7 +64,7 @@ def api_get(endpoint, params=None):
 
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "GWVSA-PaperTrader/4.0"}
+        headers={"User-Agent": "GWVSA-PaperTrader/5.0"}
     )
 
     with urllib.request.urlopen(request, timeout=25) as response:
@@ -82,14 +91,8 @@ def discover_markets():
     found = {}
 
     for requested in MARKETS:
-        aliases = MARKET_ALIASES.get(
-            requested, [requested]
-        )
-
-        wanted = {
-            normalize_pair(alias)
-            for alias in aliases
-        }
+        aliases = MARKET_ALIASES.get(requested, [requested])
+        wanted = {normalize_pair(alias) for alias in aliases}
 
         for pair_key, info in result.items():
             names = [
@@ -102,9 +105,7 @@ def discover_markets():
                 normalize_pair(name) in wanted
                 for name in names if name
             ):
-                found[requested] = info.get(
-                    "altname", pair_key
-                )
+                found[requested] = info.get("altname", pair_key)
                 break
 
     return found, result
@@ -162,9 +163,7 @@ def ema(values, period):
     multiplier = 2 / (period + 1)
 
     for price in values[period:]:
-        result = (
-            (price - result) * multiplier + result
-        )
+        result = (price - result) * multiplier + result
 
     return result
 
@@ -243,9 +242,9 @@ def trend_report(candles, timeframe):
     short_trend = e8 > e40
 
     if timeframe == "1H":
-        # Flexible 1H: short-term momentum can pass
-        # even when price is below EMA200.
-        bullish = short_trend and improving
+        # Looser 1H rule: EMA 8 rising and price above it.
+        # (Old rule required EMA 8 above EMA 40 as well.)
+        bullish = improving and price > e8
 
         reason = (
             "Supportive 1H momentum"
@@ -302,21 +301,6 @@ def ensure_trade_file():
 
 
 def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "r") as file:
-            state = json.load(file)
-    else:
-        state = {
-            "cash": STARTING_BALANCE,
-            "positions": {},
-            "last_signal": {},
-            "last_processed_5m": {},
-            "total_trades": 0,
-            "winning_trades": 0,
-            "losing_trades": 0,
-            "realized_pnl": 0.0
-        }
-
     defaults = {
         "cash": STARTING_BALANCE,
         "positions": {},
@@ -327,6 +311,12 @@ def load_state():
         "losing_trades": 0,
         "realized_pnl": 0.0
     }
+
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, "r") as file:
+            state = json.load(file)
+    else:
+        state = dict(defaults)
 
     for key, value in defaults.items():
         state.setdefault(key, value)
@@ -370,7 +360,7 @@ def check_gwvsa_entry(candles15, candles5):
     if current_rsi is None or current_atr is None:
         return None, "RSI or ATR unavailable"
 
-    if not 30 <= current_rsi <= 75:
+    if not RSI_MIN <= current_rsi <= RSI_MAX:
         return None, f"RSI rejected: {current_rsi:.2f}"
 
     # Liquidity sweep and recovery.
@@ -391,10 +381,7 @@ def check_gwvsa_entry(candles15, candles5):
             swing_low = candles15[i]["low"]
 
     # Breakout and retest.
-    previous_highs = [
-        c["high"] for c in candles15[-9:-1]
-    ]
-
+    previous_highs = [c["high"] for c in candles15[-9:-1]]
     breakout_level = max(previous_highs)
 
     structure_break = current["close"] > breakout_level
@@ -411,10 +398,7 @@ def check_gwvsa_entry(candles15, candles5):
     five = candles5[-1]
     previous_five = candles5[-2]
 
-    previous_volumes = [
-        c["volume"] for c in candles5[-21:-1]
-    ]
-
+    previous_volumes = [c["volume"] for c in candles5[-21:-1]]
     average_volume = sum(previous_volumes) / len(previous_volumes)
 
     bullish_candle = five["close"] > five["open"]
@@ -427,7 +411,7 @@ def check_gwvsa_entry(candles15, candles5):
         volume_confirmed
     ])
 
-    if confirmations < 2:
+    if confirmations < MIN_CONFIRMATIONS:
         return None, (
             f"5m confirmation rejected "
             f"({confirmations}/3 conditions)"
@@ -554,9 +538,7 @@ def close_position(state, market, exit_reference, reason):
 
     state["cash"] += proceeds - exit_fee
 
-    net_pnl = (
-        proceeds - exit_fee - position["entry_cost"]
-    )
+    net_pnl = proceeds - exit_fee - position["entry_cost"]
 
     state["realized_pnl"] += net_pnl
     state["total_trades"] += 1
@@ -644,9 +626,7 @@ def manage_position(state, market, pair, candles5):
             current_price = candles5[-1]["close"]
             reason = "GAP_EXIT_LAST_COMPLETED_CANDLE"
 
-        close_position(
-            state, market, current_price, reason
-        )
+        close_position(state, market, current_price, reason)
         return
 
     new_candles = [
@@ -721,9 +701,12 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V4")
+    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V5")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
+
+    if FORCE_TEST_TRADE:
+        print(f"FORCE_TEST_TRADE is ON ({FORCE_TEST_MARKET})")
 
     ensure_trade_file()
     state = load_state()
@@ -744,17 +727,6 @@ def main():
             print(f"{market}: FOUND as {pairs[market]}")
         else:
             print(f"{market}: NOT FOUND")
-
-    print("\nOther available CAD pairs:")
-
-    cad_pairs = sorted({
-        info.get("wsname", "")
-        for info in all_pairs.values()
-        if info.get("wsname", "").endswith("/CAD")
-    })
-
-    for name in cad_pairs[:40]:
-        print(name)
 
     for market in MARKETS:
         pair = pairs.get(market)
@@ -782,13 +754,38 @@ def main():
                 latest_prices[market] = candles5[-1]["close"]
 
             # Manage open positions before new entries.
-            manage_position(
-                state, market, pair, candles5
-            )
+            manage_position(state, market, pair, candles5)
 
             if market in state["positions"]:
                 print(f"{market}: existing position remains open")
                 continue
+
+            # Test mode: open one paper trade, skip all filters.
+            if (
+                FORCE_TEST_TRADE
+                and market == FORCE_TEST_MARKET
+                and candles15
+                and candles5
+            ):
+                last = candles15[-1]
+                current_atr = atr(candles15)
+
+                if current_atr:
+                    print(f"{market}: FORCED TEST TRADE")
+                    open_position(
+                        state,
+                        market,
+                        {
+                            "candle_time": last["time"],
+                            "entry_reference": last["close"],
+                            "stop": last["close"] - 1.5 * current_atr,
+                            "atr": current_atr,
+                            "rsi": 0,
+                            "setup": "FORCE_TEST"
+                        },
+                        candles5[-1]["time"]
+                    )
+                    continue
 
             report1h = trend_report(candles60, "1H")
             report4h = trend_report(candles240, "4H")
@@ -817,19 +814,14 @@ def main():
                     "continuing to entry test."
                 )
 
-            signal, reason = check_gwvsa_entry(
-                candles15, candles5
-            )
+            signal, reason = check_gwvsa_entry(candles15, candles5)
 
             print(f"{market}: ENTRY CHECK: {reason}")
 
             if not signal:
                 continue
 
-            if (
-                state["last_signal"].get(market)
-                == signal["candle_time"]
-            ):
+            if state["last_signal"].get(market) == signal["candle_time"]:
                 print(f"{market}: signal already processed")
                 continue
 
