@@ -1,5 +1,5 @@
 {
-  "cash": 738.8460803143299,
+  "cash": 737.799605495852,
   "positions": {
     "XBT/CAD": {
       "quantity": 0.002158419756316481,
@@ -89,18 +89,18 @@
       "entry_time": 1794988652,
       "signal_time": 1794987000
     },
-    "VVV/USD": {
-      "quantity": 5.126058463956349,
-      "entry": 30.2507141937,
-      "stop": 29.950672981000004,
-      "target": 31.318979854078773,
-      "risk": 0.30004121269999473,
-      "atr": 0.2099242449999991,
+    "XLM/USD": {
+      "quantity": 758.1479508374623,
+      "entry": 0.20327741670236,
+      "stop": 0.20124497529885715,
+      "target": 0.21049649542799195,
+      "risk": 0.002032441403502838,
+      "atr": 0.0008770405057142874,
       "tier": "SMALL",
       "target_profit": 5.0,
-      "entry_cost": 155.2219964628737,
-      "entry_time": 1794988674,
-      "signal_time": 1794987000
+      "entry_cost": 154.2684712813516,
+      "entry_time": 1794991932,
+      "signal_time": 1794990600
     }
   },
   "last_signal": {
@@ -113,20 +113,21 @@
     "LINK/USD": 1794987000,
     "INJ/USD": 1794987000,
     "SOL/USD": 1794987000,
-    "VVV/USD": 1794987000
+    "VVV/USD": 1794987000,
+    "XLM/USD": 1794990600
   },
   "last_processed_5m": {
-    "XBT/CAD": 1794989100,
-    "SUI/USD": 1794989100,
-    "ADA/USD": 1794989100,
-    "TAO/USD": 1794989100,
-    "LINK/USD": 1794989100,
-    "INJ/USD": 1794989100,
-    "SOL/USD": 1794989100,
-    "VVV/USD": 1794989100
+    "XBT/CAD": 1794991500,
+    "SUI/USD": 1794991500,
+    "ADA/USD": 1794991500,
+    "TAO/USD": 1794991500,
+    "LINK/USD": 1794991500,
+    "INJ/USD": 1794991500,
+    "SOL/USD": 1794991500,
+    "XLM/USD": 1794991500
   },
-  "total_trades": 6,
+  "total_trades": 7,
   "winning_trades": 2,
-  "losing_trades": 4,
-  "realized_pnl": -0.6806897552822022
+  "losing_trades": 5,
+  "realized_pnl": -2.6806897552822306
 }
