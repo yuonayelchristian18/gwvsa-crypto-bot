@@ -1,5 +1,5 @@
 {
-  "cash": 1547.7782038121507,
+  "cash": 1863.987702576886,
   "positions": {
     "VVV/USD": {
       "quantity": 1.921039986642488,
@@ -26,62 +26,6 @@
       "entry_cost": 48.060332494360345,
       "entry_time": 1794998426,
       "signal_time": 1794996900
-    },
-    "TRX/USD": {
-      "quantity": 452.1855121675369,
-      "entry": 0.44229634656206995,
-      "stop": 0.44033300641406076,
-      "target": 0.4547050068814397,
-      "risk": 0.001963340148009196,
-      "atr": 0.00047958757071427306,
-      "tier": "SMALL",
-      "target_profit": 5.0,
-      "entry_cost": 200.2,
-      "entry_time": 1794998432,
-      "signal_time": 1794996900
-    },
-    "AKE/USD": {
-      "quantity": 3174.8710892295317,
-      "entry": 0.014641350907462203,
-      "stop": 0.014061177272957142,
-      "target": 0.01836186048877739,
-      "risk": 0.0005801736345050611,
-      "atr": 0.00016505890817142835,
-      "tier": "MEDIUM",
-      "target_profit": 11.62,
-      "entry_cost": 46.53088610506968,
-      "entry_time": 1795001639,
-      "signal_time": 1795000500
-    },
-    "ICNT/USD": {
-      "quantity": 66.86175385926985,
-      "entry": 0.472284324512,
-      "stop": 0.44373116051428574,
-      "target": 0.5293906525074284,
-      "risk": 0.028553163997714237,
-      "atr": 0.02159474742857143,
-      "tier": "MEDIUM",
-      "score": 5,
-      "r_multiple": 2.0,
-      "target_profit": 3.72,
-      "entry_cost": 31.609336015369983,
-      "entry_time": 1795008730,
-      "signal_time": 1795007700
-    },
-    "BLESS/USD": {
-      "quantity": 2072.565586031609,
-      "entry": 0.016651483188339995,
-      "stop": 0.015734600581857144,
-      "target": 0.018485248401305696,
-      "risk": 0.0009168826064828509,
-      "atr": 0.0007987174407142857,
-      "tier": "MEDIUM",
-      "score": 6,
-      "r_multiple": 2.0,
-      "target_profit": 3.69,
-      "entry_cost": 34.545802303549905,
-      "entry_time": 1795012460,
-      "signal_time": 1795011300
     }
   },
   "last_signal": {
@@ -110,15 +54,11 @@
     "BLESS/USD": 1795011300
   },
   "last_processed_5m": {
-    "VVV/USD": 1795011900,
-    "USELESS/USD": 1795011900,
-    "TRX/USD": 1795011900,
-    "AKE/USD": 1795011900,
-    "ICNT/USD": 1795011900,
-    "BLESS/USD": 1795011900
+    "VVV/USD": 1795015200,
+    "USELESS/USD": 1795015200
   },
-  "total_trades": 23,
-  "winning_trades": 3,
-  "losing_trades": 20,
-  "realized_pnl": -32.007832367679526
+  "total_trades": 27,
+  "winning_trades": 6,
+  "losing_trades": 21,
+  "realized_pnl": -28.6843580269336
 }
