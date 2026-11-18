@@ -15,7 +15,7 @@ API = "https://api.kraken.com/0/public"
 
 STARTING_BALANCE = 2000.00
 RISK_PER_TRADE = 2.00
-MAX_POSITION_VALUE = 15.00
+MAX_POSITION_VALUE = 200.00
 
 FEE_RATE = 0.001
 SLIPPAGE = 0.0015
@@ -417,27 +417,35 @@ def check_gwvsa_entry(candles15, candles5):
             f"breakout level {breakout_level:.6g})"
         )
 
-    # 5-minute confirmation.
-    five = candles5[-1]
-    previous_five = candles5[-2]
+    # 5-minute confirmation: best score among the last 3 closed
+    # 5m candles, so one weak candle doesn't block a good setup.
+    confirmations = 0
 
-    previous_volumes = [c["volume"] for c in candles5[-21:-1]]
-    average_volume = sum(previous_volumes) / len(previous_volumes)
+    for k in range(1, 4):
+        five = candles5[-k]
+        previous_five = candles5[-k - 1]
 
-    bullish_candle = five["close"] > five["open"]
-    bullish_break = five["close"] > previous_five["high"]
-    volume_confirmed = five["volume"] >= average_volume * 0.80
+        previous_volumes = [
+            c["volume"] for c in candles5[-k - 20:-k]
+        ]
+        average_volume = sum(previous_volumes) / len(previous_volumes)
 
-    confirmations = sum([
-        bullish_candle,
-        bullish_break,
-        volume_confirmed
-    ])
+        bullish_candle = five["close"] > five["open"]
+        bullish_break = five["close"] > previous_five["high"]
+        volume_confirmed = five["volume"] >= average_volume * 0.80
+
+        score = sum([
+            bullish_candle,
+            bullish_break,
+            volume_confirmed
+        ])
+
+        confirmations = max(confirmations, score)
 
     if confirmations < MIN_CONFIRMATIONS:
         return None, (
             f"5m confirmation rejected "
-            f"({confirmations}/3 conditions)"
+            f"(best of last 3 candles: {confirmations}/3)"
         )
 
     recent_low = min(c["low"] for c in candles15[-8:])
