@@ -1,35 +1,20 @@
 {
-  "cash": 1859.9360978503519,
+  "cash": 1916.011682824043,
   "positions": {
     "BLESS/USD": {
-      "quantity": 4847.494710250942,
-      "entry": 0.015863498167840002,
-      "stop": 0.016149417249089287,
-      "target": 0.016579458610948575,
-      "risk": 0.00035798022155428613,
-      "atr": 0.000273226068571428,
-      "tier": "MEDIUM",
-      "score": 5,
-      "r_multiple": 2.0,
-      "target_profit": 3.19,
-      "entry_cost": 76.9751216781346,
-      "entry_time": 1795018666,
-      "signal_time": 1795017600
-    },
-    "PIEVERSE/USD": {
-      "quantity": 6.67879606484705,
-      "entry": 4.547832888034,
-      "stop": 4.263578102457143,
-      "target": 5.116342459187713,
-      "risk": 0.2842547855768567,
-      "atr": 0.2115658677142858,
-      "tier": "MEDIUM",
-      "score": 6,
-      "r_multiple": 2.0,
-      "target_profit": 3.68,
-      "entry_cost": 30.404422444579655,
-      "entry_time": 1795018675,
-      "signal_time": 1795017600
+      "quantity": 3180.069836403209,
+      "entry": 0.01748624806697,
+      "stop": 0.016917084645142858,
+      "target": 0.01890915662153785,
+      "risk": 0.0005691634218271402,
+      "atr": 0.0003278893742857139,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 4.32,
+      "entry_cost": 55.66309751966485,
+      "entry_time": 1795025376,
+      "signal_time": 1795023900
     }
   },
   "last_signal": {
@@ -55,15 +40,14 @@
     "UNI/USD": 1795003200,
     "TRUMP/USD": 1795003200,
     "ICNT/USD": 1795007700,
-    "BLESS/USD": 1795017600,
+    "BLESS/USD": 1795023900,
     "PIEVERSE/USD": 1795017600
   },
   "last_processed_5m": {
-    "BLESS/USD": 1795022400,
-    "PIEVERSE/USD": 1795022400
+    "BLESS/USD": 1795024800
   },
-  "total_trades": 29,
-  "winning_trades": 6,
+  "total_trades": 31,
+  "winning_trades": 8,
   "losing_trades": 23,
-  "realized_pnl": -32.68435802693362
+  "realized_pnl": -28.32521965629185
 }
