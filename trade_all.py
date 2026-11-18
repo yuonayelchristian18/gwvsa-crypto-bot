@@ -25,6 +25,8 @@ REWARD_RISK = 2.0
 RSI_MIN = 30
 RSI_MAX = 80          # was 75
 MIN_CONFIRMATIONS = 2  # out of 3 on the 5m chart
+REQUIRE_RETEST = False       # breakout alone is enough
+ALLOW_MOMENTUM_ENTRY = True  # third setup: 15m momentum
 
 # Set FORCE_TEST_TRADE=1 in the environment to open one test
 # paper trade on FORCE_TEST_MARKET, ignoring all filters.
@@ -391,8 +393,26 @@ def check_gwvsa_entry(candles15, candles5):
         and current["close"] > breakout_level
     )
 
-    if not sweep_found and not (structure_break and retest):
-        return None, "No qualifying sweep or breakout/retest"
+    breakout_ok = structure_break and (retest or not REQUIRE_RETEST)
+
+    # Momentum setup: 15m EMA 8 above EMA 20, price above EMA 8,
+    # RSI in a healthy range (not overbought).
+    momentum_setup = False
+
+    if ALLOW_MOMENTUM_ENTRY and not sweep_found and not breakout_ok:
+        e8_15 = ema(closes, 8)
+        e20_15 = ema(closes, 20)
+
+        if (
+            e8_15 and e20_15
+            and e8_15 > e20_15
+            and current["close"] > e8_15
+            and 45 <= current_rsi <= 70
+        ):
+            momentum_setup = True
+
+    if not sweep_found and not breakout_ok and not momentum_setup:
+        return None, "No qualifying sweep, breakout or momentum setup"
 
     # 5-minute confirmation.
     five = candles5[-1]
@@ -434,7 +454,11 @@ def check_gwvsa_entry(candles15, candles5):
         "stop": stop,
         "atr": current_atr,
         "rsi": current_rsi,
-        "setup": "SWEEP" if sweep_found else "BREAKOUT_RETEST"
+        "setup": (
+            "SWEEP" if sweep_found
+            else "BREAKOUT" if breakout_ok
+            else "MOMENTUM"
+        )
     }, "Flexible GWVSA entry confirmed"
 
 
