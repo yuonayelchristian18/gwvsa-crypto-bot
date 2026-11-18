@@ -1,5 +1,5 @@
 {
-  "cash": 1582.3240061157005,
+  "cash": 1547.7782038121507,
   "positions": {
     "VVV/USD": {
       "quantity": 1.921039986642488,
@@ -67,6 +67,21 @@
       "entry_cost": 31.609336015369983,
       "entry_time": 1795008730,
       "signal_time": 1795007700
+    },
+    "BLESS/USD": {
+      "quantity": 2072.565586031609,
+      "entry": 0.016651483188339995,
+      "stop": 0.015734600581857144,
+      "target": 0.018485248401305696,
+      "risk": 0.0009168826064828509,
+      "atr": 0.0007987174407142857,
+      "tier": "MEDIUM",
+      "score": 6,
+      "r_multiple": 2.0,
+      "target_profit": 3.69,
+      "entry_cost": 34.545802303549905,
+      "entry_time": 1795012460,
+      "signal_time": 1795011300
     }
   },
   "last_signal": {
@@ -91,14 +106,16 @@
     "AKE/USD": 1795000500,
     "UNI/USD": 1795003200,
     "TRUMP/USD": 1795003200,
-    "ICNT/USD": 1795007700
+    "ICNT/USD": 1795007700,
+    "BLESS/USD": 1795011300
   },
   "last_processed_5m": {
-    "VVV/USD": 1795009200,
-    "USELESS/USD": 1795009200,
-    "TRX/USD": 1795009200,
-    "AKE/USD": 1795009200,
-    "ICNT/USD": 1795009200
+    "VVV/USD": 1795011900,
+    "USELESS/USD": 1795011900,
+    "TRX/USD": 1795011900,
+    "AKE/USD": 1795011900,
+    "ICNT/USD": 1795011900,
+    "BLESS/USD": 1795011900
   },
   "total_trades": 23,
   "winning_trades": 3,
