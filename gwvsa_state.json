@@ -1,5 +1,5 @@
 {
-  "cash": 1493.795848683542,
+  "cash": 1058.4459659377862,
   "positions": {
     "VVV/USD": {
       "quantity": 1.921039986642488,
@@ -65,6 +65,45 @@
       "entry_cost": 46.53088610506968,
       "entry_time": 1795001639,
       "signal_time": 1795000500
+    },
+    "UNI/USD": {
+      "quantity": 26.720650838424902,
+      "entry": 7.484847626255999,
+      "stop": 7.438003488642857,
+      "target": 7.732334840015125,
+      "risk": 0.04684413761314232,
+      "atr": 0.03209044542857166,
+      "tier": "MEDIUM",
+      "target_profit": 6.0,
+      "entry_cost": 200.2,
+      "entry_time": 1795004782,
+      "signal_time": 1795003200
+    },
+    "AAVE/USD": {
+      "quantity": 0.6886435398287412,
+      "entry": 160.22995148159998,
+      "stop": 157.8013662,
+      "target": 169.4416758354227,
+      "risk": 2.428585281599993,
+      "atr": 0.48662160000000043,
+      "tier": "MEDIUM",
+      "target_profit": 6.0,
+      "entry_cost": 110.45166229585135,
+      "entry_time": 1795004795,
+      "signal_time": 1795003200
+    },
+    "TRUMP/USD": {
+      "quantity": 89.64124944896449,
+      "entry": 1.3896911027999999,
+      "stop": 1.371511287857143,
+      "target": 1.4497567504221016,
+      "risk": 0.01817981494285692,
+      "atr": 0.004191488571428592,
+      "tier": "SMALL",
+      "target_profit": 5.0,
+      "entry_cost": 124.69822044990444,
+      "entry_time": 1795004819,
+      "signal_time": 1795003200
     }
   },
   "last_signal": {
@@ -83,17 +122,22 @@
     "HYPE/USD": 1794996900,
     "USELESS/USD": 1794996900,
     "TRX/USD": 1794996900,
-    "AAVE/USD": 1794996900,
+    "AAVE/USD": 1795003200,
     "CC/USD": 1794996900,
     "PENGU/USD": 1795000500,
-    "AKE/USD": 1795000500
+    "AKE/USD": 1795000500,
+    "UNI/USD": 1795003200,
+    "TRUMP/USD": 1795003200
   },
   "last_processed_5m": {
-    "VVV/USD": 1795001100,
-    "USELESS/USD": 1795001100,
-    "TRX/USD": 1795001100,
-    "PENGU/USD": 1795001100,
-    "AKE/USD": 1795001100
+    "VVV/USD": 1795004400,
+    "USELESS/USD": 1795004400,
+    "TRX/USD": 1795004400,
+    "PENGU/USD": 1795004400,
+    "AKE/USD": 1795004400,
+    "UNI/USD": 1795004400,
+    "AAVE/USD": 1795004400,
+    "TRUMP/USD": 1795004400
   },
   "total_trades": 19,
   "winning_trades": 3,
