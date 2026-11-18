@@ -7,7 +7,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V5.3 (ALL CAD CRYPTO)
+# GWVSA PAPER TRADING BOT V6 (TOP 50 MARKETS)
 # Kraken public data ONLY. NO REAL ORDERS.
 # ============================================================
 
@@ -66,7 +66,9 @@ FORCE_TEST_TRADE = os.environ.get("FORCE_TEST_TRADE") == "1"
 FORCE_TEST_MARKET = "SOL/CAD"
 
 # All-crypto scanning settings
-QUOTE = "CAD"
+QUOTE = "CAD"               # home currency
+USE_USD_PAIRS = True        # also scan Kraken USD pairs (converted to CAD)
+MAX_MARKETS = 50            # scan the 50 most-traded markets
 MIN_24H_VOLUME_CAD = 500    # skip dead/illiquid coins (0 = no filter)
 MAX_OPEN_POSITIONS = 8      # 8 x $200 fits in the $2000 account
 CALL_DELAY = 1.1            # seconds between Kraken calls
@@ -75,6 +77,7 @@ CALL_DELAY = 1.1            # seconds between Kraken calls
 EXCLUDE_BASES = {
     "USDT", "USDC", "DAI", "PYUSD", "USDG", "EURT", "TUSD",
     "USD", "EUR", "GBP", "AUD", "CAD", "CHF", "JPY",
+    "USD1", "RLUSD", "EURQ", "USDQ", "EURR", "FDUSD", "USDD", "UST", "AUDX",
 }
 
 STATE_FILE = "gwvsa_state.json"
@@ -92,6 +95,11 @@ TRADE_HEADERS = [
 # ============================================================
 
 MARKET_SLIPPAGE = {}
+MARKET_FX = {}   # CAD per 1 unit of the market's quote currency
+
+
+def fx_for(market):
+    return MARKET_FX.get(market, 1.0)
 
 
 def slippage_from_volume(volume_cad):
@@ -135,7 +143,8 @@ def api_get(endpoint, params=None):
 
 def discover_markets(held=()):
     result = api_get("AssetPairs")
-    candidates = {}
+    cad, usd = {}, {}
+    fx_pair = None
 
     for key, info in result.items():
         if key.endswith(".d"):
@@ -151,46 +160,96 @@ def discover_markets(held=()):
 
         base, quote = ws.split("/")
 
-        if quote != QUOTE or base in EXCLUDE_BASES:
+        if ws == "USD/CAD":
+            fx_pair = info.get("altname", key)
+            continue
+
+        # Skip stablecoins, fiat, and tokenized stocks (lowercase 'x').
+        if base in EXCLUDE_BASES or base != base.upper():
             continue
 
         base = "DOGE" if base == "XDG" else base
+        entry = {"pair": info.get("altname", key), "key": key}
 
-        candidates[f"{base}/{quote}"] = {
-            "pair": info.get("altname", key),
-            "key": key
-        }
+        if quote == QUOTE:
+            cad[f"{base}/{quote}"] = dict(entry, fx=1.0)
+        elif USE_USD_PAIRS and quote == "USD":
+            usd[f"{base}/{quote}"] = entry
+
+    candidates = dict(cad)
+
+    if usd:
+        try:
+            if not fx_pair:
+                raise RuntimeError("USD/CAD pair not found")
+
+            fx = get_ticker_price(fx_pair)  # CAD per USD
+
+            for market, entry in usd.items():
+                candidates[market] = dict(entry, fx=fx)
+        except Exception as error:
+            print("USD pairs skipped (no exchange rate):", error)
 
     if not candidates:
         return {}, result
 
-    tickers = api_get("Ticker", {
-        "pair": ",".join(c["pair"] for c in candidates.values())
-    })
+    items = list(candidates.items())
+    tickers = {}
 
-    scored = []
+    for i in range(0, len(items), 40):
+        chunk = items[i:i + 40]
+        tickers.update(api_get("Ticker", {
+            "pair": ",".join(c["pair"] for _, c in chunk)
+        }))
+
+    # When a coin has both a CAD and a USD market, use the busier one
+    # (or the one already holding a position).
+    best = {}
 
     for market, c in candidates.items():
         t = tickers.get(c["key"]) or tickers.get(c["pair"])
-        volume = float(t["v"][1]) * float(t["p"][1]) if t else 0.0
+        volume = (
+            float(t["v"][1]) * float(t["p"][1]) * c["fx"] if t else 0.0
+        )
+        base = market.split("/")[0]
+        rank = (market in held, volume)
 
-        # Always keep markets with open positions so they get managed.
+        if base not in best or rank > best[base][0]:
+            best[base] = (rank, volume, market, c)
+
+    scored = []
+    low_volume = 0
+
+    for _, volume, market, c in best.values():
         if market in held or volume >= MIN_24H_VOLUME_CAD:
-            scored.append((volume, market, c["pair"]))
-            MARKET_SLIPPAGE[market] = slippage_from_volume(volume)
+            scored.append((volume, market, c["pair"], c["fx"]))
         else:
-            print(f"Skipped {market}: 24h volume ${volume:,.0f} CAD")
-
-    print(f"Kraken lists {len(candidates)} online {QUOTE} pairs; "
-          f"{len(scored)} kept")
+            low_volume += 1
 
     scored.sort(reverse=True)  # most liquid first
-    found = {market: pair for _, market, pair in scored}
+
+    chosen = [x for x in scored if x[1] in held]
+    chosen += [x for x in scored if x[1] not in held][
+        :max(MAX_MARKETS - len(chosen), 0)
+    ]
+    chosen.sort(reverse=True)
+
+    found = {}
+
+    for volume, market, pair, fx in chosen:
+        found[market] = pair
+        MARKET_SLIPPAGE[market] = slippage_from_volume(volume)
+        MARKET_FX[market] = fx
+
+    print(
+        f"Kraken lists {len(candidates)} usable markets; "
+        f"{low_volume} skipped for low volume; scanning {len(found)}"
+    )
 
     return found, result
 
 
-def get_candles(pair, interval):
+def get_candles(pair, interval, fx=1.0):
     result = api_get("OHLC", {
         "pair": pair,
         "interval": interval
@@ -210,27 +269,27 @@ def get_candles(pair, interval):
     return [
         {
             "time": int(row[0]),
-            "open": float(row[1]),
-            "high": float(row[2]),
-            "low": float(row[3]),
-            "close": float(row[4]),
+            "open": float(row[1]) * fx,
+            "high": float(row[2]) * fx,
+            "low": float(row[3]) * fx,
+            "close": float(row[4]) * fx,
             "volume": float(row[6])
         }
         for row in rows
     ]
 
 
-def get_ticker_price(pair):
+def get_ticker_price(pair, fx=1.0):
     result = api_get("Ticker", {"pair": pair})
 
     if not result:
         raise RuntimeError("Ticker returned no market data")
 
     ticker = next(iter(result.values()))
-    return float(ticker["c"][0])
+    return float(ticker["c"][0]) * fx
 
 
-def get_ask_price(pair):
+def get_ask_price(pair, fx=1.0):
     result = api_get("Ticker", {"pair": pair})
 
     if not result:
@@ -239,7 +298,7 @@ def get_ask_price(pair):
     ticker = next(iter(result.values()))
     ask = float(ticker["a"][0])
 
-    return ask if ask > 0 else float(ticker["c"][0])
+    return (ask if ask > 0 else float(ticker["c"][0])) * fx
 
 
 # ============================================================
@@ -866,7 +925,7 @@ def manage_position(state, market, pair, candles5):
             last_time = int(entry_time)
         else:
             try:
-                current_price = get_ticker_price(pair)
+                current_price = get_ticker_price(pair, fx_for(market))
             except Exception:
                 current_price = candles5[-1]["close"]
 
@@ -889,7 +948,7 @@ def manage_position(state, market, pair, candles5):
         )
 
         try:
-            current_price = get_ticker_price(pair)
+            current_price = get_ticker_price(pair, fx_for(market))
             reason = "GAP_EXIT_CURRENT_TICKER"
         except Exception as error:
             print("Ticker fallback error:", error)
@@ -1014,7 +1073,7 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V5.3 (ALL CAD CRYPTO)")
+    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V6 (TOP 50 MARKETS)")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
 
@@ -1034,7 +1093,7 @@ def main():
         return
 
     markets = list(pairs)
-    print(f"\nScanning {len(markets)} {QUOTE} markets")
+    print(f"\nScanning {len(markets)} markets")
 
     for market in state["positions"]:
         if market not in pairs:
@@ -1042,6 +1101,7 @@ def main():
 
     for market in markets:
         pair = pairs[market]
+        fx = fx_for(market)
         print(f"\n######## CHECKING {market} ########")
 
         try:
@@ -1049,7 +1109,7 @@ def main():
 
             # Manage open positions first.
             if market in state["positions"]:
-                candles5 = get_candles(pair, 5)
+                candles5 = get_candles(pair, 5, fx)
 
                 if candles5:
                     latest_prices[market] = candles5[-1]["close"]
@@ -1068,14 +1128,14 @@ def main():
 
             # Cheap 1H check first; only fetch more data if it passes.
             if not forced:
-                report1h = trend_report(get_candles(pair, 60), "1H")
+                report1h = trend_report(get_candles(pair, 60, fx), "1H")
                 print_trend(market, "1H", report1h)
 
                 if not report1h["valid"] or not report1h["bullish"]:
                     print(f"{market}: 1H trend rejected")
                     continue
 
-                report4h = trend_report(get_candles(pair, 240), "4H")
+                report4h = trend_report(get_candles(pair, 240, fx), "4H")
                 print_trend(market, "4H", report4h)
                 four_h = report4h["valid"] and report4h["bullish"]
 
@@ -1085,8 +1145,8 @@ def main():
                         "continuing to entry test."
                     )
 
-            candles15 = get_candles(pair, 15)
-            candles5 = get_candles(pair, 5)
+            candles15 = get_candles(pair, 15, fx)
+            candles5 = get_candles(pair, 5, fx)
 
             if candles5:
                 latest_prices[market] = candles5[-1]["close"]
@@ -1127,7 +1187,7 @@ def main():
                 continue
 
             # Enter at the live ask, not the stale candle close.
-            ask = get_ask_price(pair)
+            ask = get_ask_price(pair, fx)
             drift = ask / signal["entry_reference"] - 1
 
             if drift > MAX_ENTRY_DRIFT:
