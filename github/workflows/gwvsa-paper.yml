@@ -1,23 +1,41 @@
-name: gwvsa-paper
+name: Paper Trader
+
 on:
   schedule:
-    - cron: "5 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
+    inputs:
+      force_test:
+        description: "Open a forced test trade (1 = yes)"
+        required: false
+        default: "0"
+
 permissions:
   contents: write
-concurrency: gwvsa-paper
+
+concurrency:
+  group: paper-trader
+  cancel-in-progress: false
+
 jobs:
-  paper:
+  trade:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: {python-version: "3.11"}
-      - run: pip install -r requirements.txt
-      - run: python gwvsa_bot.py paper
-      - run: |
-          git config user.name "gwvsa-bot"
-          git config user.email "gwvsa-bot@users.noreply.github.com"
-          git add bot_state.json
-          git commit -m "paper state" || echo "no changes"
+        with:
+          python-version: "3.11"
+
+      - name: Run bot
+        env:
+          FORCE_TEST_TRADE: ${{ github.event.inputs.force_test || '0' }}
+        run: python trade_all.py
+
+      - name: Save state and trade log
+        run: |
+          git config user.name "paper-trader-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add gwvsa_state.json gwvsa_trades.csv
+          git diff --staged --quiet || git commit -m "Update paper trading state"
           git push
