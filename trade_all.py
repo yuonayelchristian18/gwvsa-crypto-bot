@@ -24,7 +24,7 @@ REWARD_RISK = 2.0
 # Entry filter settings (easy to tune)
 RSI_MIN = 30
 RSI_MAX = 80          # was 75
-MIN_CONFIRMATIONS = 2  # out of 3 on the 5m chart
+MIN_CONFIRMATIONS = 1  # out of 3 on the 5m chart (was 2)
 REQUIRE_RETEST = False       # breakout alone is enough
 ALLOW_MOMENTUM_ENTRY = True  # third setup: 15m momentum
 
