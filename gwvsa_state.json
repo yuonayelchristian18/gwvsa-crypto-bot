@@ -4,20 +4,22 @@
     "SOL/CAD": {
       "quantity": 1.872308731727086,
       "entry": 106.81999,
-      "stop": 105.901,
+      "stop": 107.1946357875151,
       "target": 108.65797000000002,
       "entry_cost": 200.2,
       "entry_time": 1794968216,
-      "signal_time": 1794967200
+      "signal_time": 1794967200,
+      "risk": 0.918990000000008
     },
     "XRP/CAD": {
       "quantity": 138.91051097140038,
       "entry": 1.40232033,
-      "stop": 1.3879225714285714,
+      "stop": 1.4072386360622011,
       "target": 1.4311158471428571,
       "entry_cost": 194.9918306194687,
       "entry_time": 1794973912,
-      "signal_time": 1794972600
+      "signal_time": 1794972600,
+      "risk": 0.014397758571428554
     },
     "XBT/CAD": {
       "quantity": 0.002158419756316481,
@@ -26,7 +28,8 @@
       "target": 94056.2100571429,
       "entry_cost": 200.2,
       "entry_time": 1794980727,
-      "signal_time": 1794979800
+      "signal_time": 1794979800,
+      "risk": 697.9138285714434
     }
   },
   "last_signal": {
@@ -35,9 +38,9 @@
     "SOL/CAD": 1794967200
   },
   "last_processed_5m": {
-    "SOL/CAD": 1794983700,
-    "XRP/CAD": 1794983700,
-    "XBT/CAD": 1794983700
+    "SOL/CAD": 1794986100,
+    "XRP/CAD": 1794986100,
+    "XBT/CAD": 1794986100
   },
   "total_trades": 4,
   "winning_trades": 1,
