@@ -1,5 +1,5 @@
 {
-  "cash": 1473.8723438198492,
+  "cash": 1582.3240061157005,
   "positions": {
     "VVV/USD": {
       "quantity": 1.921039986642488,
@@ -53,19 +53,6 @@
       "entry_time": 1795001639,
       "signal_time": 1795000500
     },
-    "AAVE/USD": {
-      "quantity": 0.6886435398287412,
-      "entry": 160.22995148159998,
-      "stop": 157.8013662,
-      "target": 169.4416758354227,
-      "risk": 2.428585281599993,
-      "atr": 0.48662160000000043,
-      "tier": "MEDIUM",
-      "target_profit": 6.0,
-      "entry_cost": 110.45166229585135,
-      "entry_time": 1795004795,
-      "signal_time": 1795003200
-    },
     "ICNT/USD": {
       "quantity": 66.86175385926985,
       "entry": 0.472284324512,
@@ -107,15 +94,14 @@
     "ICNT/USD": 1795007700
   },
   "last_processed_5m": {
-    "VVV/USD": 1795008900,
-    "USELESS/USD": 1795008900,
-    "TRX/USD": 1795008900,
-    "AKE/USD": 1795008900,
-    "AAVE/USD": 1795008900,
-    "ICNT/USD": 1795008900
+    "VVV/USD": 1795009200,
+    "USELESS/USD": 1795009200,
+    "TRX/USD": 1795009200,
+    "AKE/USD": 1795009200,
+    "ICNT/USD": 1795009200
   },
-  "total_trades": 22,
+  "total_trades": 23,
   "winning_trades": 3,
-  "losing_trades": 19,
-  "realized_pnl": -30.007832367679498
+  "losing_trades": 20,
+  "realized_pnl": -32.007832367679526
 }
