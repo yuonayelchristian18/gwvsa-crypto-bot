@@ -7,7 +7,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V5.2
+# GWVSA PAPER TRADING BOT V5.3 (ALL CAD CRYPTO)
 # Kraken public data ONLY. NO REAL ORDERS.
 # ============================================================
 
@@ -23,8 +23,8 @@ REWARD_RISK = 2.0
 
 # Entry filter settings (easy to tune)
 RSI_MIN = 30
-RSI_MAX = 80          # was 75
-MIN_CONFIRMATIONS = 1  # out of 3 on the 5m chart (was 2)
+RSI_MAX = 80
+MIN_CONFIRMATIONS = 1        # out of 3 on the 5m chart
 REQUIRE_RETEST = False       # breakout alone is enough
 ALLOW_MOMENTUM_ENTRY = True  # third setup: 15m momentum
 
@@ -33,17 +33,16 @@ ALLOW_MOMENTUM_ENTRY = True  # third setup: 15m momentum
 FORCE_TEST_TRADE = os.environ.get("FORCE_TEST_TRADE") == "1"
 FORCE_TEST_MARKET = "SOL/CAD"
 
-MARKETS = [
-    "XBT/CAD",
-    "ETH/CAD",
-    "SOL/CAD",
-    "XRP/CAD",
-    "DOGE/CAD",
-    "PEPE/CAD",
-]
+# All-crypto scanning settings
+QUOTE = "CAD"
+MIN_24H_VOLUME_CAD = 5000   # skip dead/illiquid coins
+MAX_OPEN_POSITIONS = 8      # 8 x $200 fits in the $2000 account
+CALL_DELAY = 1.1            # seconds between Kraken calls
 
-MARKET_ALIASES = {
-    "DOGE/CAD": ["DOGE/CAD", "XDG/CAD"],
+# Stablecoins and fiat aren't worth trading.
+EXCLUDE_BASES = {
+    "USDT", "USDC", "DAI", "PYUSD", "USDG", "EURT", "TUSD",
+    "USD", "EUR", "GBP", "AUD", "CAD", "CHF", "JPY",
 }
 
 STATE_FILE = "gwvsa_state.json"
@@ -64,51 +63,76 @@ def api_get(endpoint, params=None):
     query = urllib.parse.urlencode(params or {})
     url = f"{API}/{endpoint}?{query}"
 
-    request = urllib.request.Request(
-        url,
-        headers={"User-Agent": "GWVSA-PaperTrader/5.0"}
-    )
+    for attempt in range(3):
+        time.sleep(CALL_DELAY)
 
-    with urllib.request.urlopen(request, timeout=25) as response:
-        data = json.loads(response.read().decode("utf-8"))
+        request = urllib.request.Request(
+            url,
+            headers={"User-Agent": "GWVSA-PaperTrader/5.0"}
+        )
 
-    if data.get("error"):
-        raise RuntimeError("; ".join(data["error"]))
+        with urllib.request.urlopen(request, timeout=25) as response:
+            data = json.loads(response.read().decode("utf-8"))
 
-    return data["result"]
+        if data.get("error"):
+            message = "; ".join(data["error"])
+
+            if "rate limit" in message.lower() and attempt < 2:
+                time.sleep(15)
+                continue
+
+            raise RuntimeError(message)
+
+        return data["result"]
 
 
-def normalize_pair(value):
-    return (
-        str(value).upper()
-        .replace("/", "")
-        .replace("-", "")
-        .replace("_", "")
-        .replace(" ", "")
-    )
-
-
-def discover_markets():
+def discover_markets(held=()):
     result = api_get("AssetPairs")
-    found = {}
+    candidates = {}
 
-    for requested in MARKETS:
-        aliases = MARKET_ALIASES.get(requested, [requested])
-        wanted = {normalize_pair(alias) for alias in aliases}
+    for key, info in result.items():
+        if key.endswith(".d"):
+            continue
 
-        for pair_key, info in result.items():
-            names = [
-                info.get("wsname", ""),
-                info.get("altname", ""),
-                pair_key
-            ]
+        if info.get("status", "online") != "online":
+            continue
 
-            if any(
-                normalize_pair(name) in wanted
-                for name in names if name
-            ):
-                found[requested] = info.get("altname", pair_key)
-                break
+        ws = info.get("wsname", "")
+
+        if "/" not in ws:
+            continue
+
+        base, quote = ws.split("/")
+
+        if quote != QUOTE or base in EXCLUDE_BASES:
+            continue
+
+        base = "DOGE" if base == "XDG" else base
+
+        candidates[f"{base}/{quote}"] = {
+            "pair": info.get("altname", key),
+            "key": key
+        }
+
+    if not candidates:
+        return {}, result
+
+    tickers = api_get("Ticker", {
+        "pair": ",".join(c["pair"] for c in candidates.values())
+    })
+
+    scored = []
+
+    for market, c in candidates.items():
+        t = tickers.get(c["key"]) or tickers.get(c["pair"])
+        volume = float(t["v"][1]) * float(t["p"][1]) if t else 0.0
+
+        # Always keep markets with open positions so they get managed.
+        if market in held or volume >= MIN_24H_VOLUME_CAD:
+            scored.append((volume, market, c["pair"]))
+
+    scored.sort(reverse=True)  # most liquid first
+    found = {market: pair for _, market, pair in scored}
 
     return found, result
 
@@ -245,7 +269,6 @@ def trend_report(candles, timeframe):
 
     if timeframe == "1H":
         # Looser 1H rule: EMA 8 rising and price above it.
-        # (Old rule required EMA 8 above EMA 40 as well.)
         bullish = improving and price > e8
 
         reason = (
@@ -736,7 +759,7 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V5.2")
+    print("\nGWVSA FLEXIBLE PAPER TRADING BOT V5.3 (ALL CAD CRYPTO)")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
 
@@ -748,60 +771,70 @@ def main():
     latest_prices = {}
 
     try:
-        pairs, all_pairs = discover_markets()
+        pairs, all_pairs = discover_markets(set(state["positions"]))
     except Exception as error:
         print("Kraken market discovery error:", error)
         save_state(state)
         print_status(state, latest_prices)
         return
 
-    print("\n========== MARKET DISCOVERY ==========")
+    markets = list(pairs)
+    print(f"\nScanning {len(markets)} {QUOTE} markets")
 
-    for market in MARKETS:
-        if market in pairs:
-            print(f"{market}: FOUND as {pairs[market]}")
-        else:
-            print(f"{market}: NOT FOUND")
+    for market in state["positions"]:
+        if market not in pairs:
+            print(f"WARNING {market}: open position but pair not found")
 
-    for market in MARKETS:
-        pair = pairs.get(market)
-
-        if not pair:
-            print(f"{market}: skipped - Kraken pair not found")
-            continue
-
+    for market in markets:
+        pair = pairs[market]
         print(f"\n######## CHECKING {market} ########")
 
         try:
-            candles5 = get_candles(pair, 5)
-            candles15 = get_candles(pair, 15)
-            candles60 = get_candles(pair, 60)
-            candles240 = get_candles(pair, 240)
+            forced = FORCE_TEST_TRADE and market == FORCE_TEST_MARKET
 
-            print(
-                f"Candles: 5m={len(candles5)}, "
-                f"15m={len(candles15)}, "
-                f"1H={len(candles60)}, "
-                f"4H={len(candles240)}"
-            )
+            # Manage open positions first.
+            if market in state["positions"]:
+                candles5 = get_candles(pair, 5)
+
+                if candles5:
+                    latest_prices[market] = candles5[-1]["close"]
+
+                manage_position(state, market, pair, candles5)
+
+                if market in state["positions"]:
+                    print(f"{market}: existing position remains open")
+                    continue
+
+            if len(state["positions"]) >= MAX_OPEN_POSITIONS:
+                print(f"{market}: max open positions reached")
+                continue
+
+            # Cheap 1H check first; only fetch more data if it passes.
+            if not forced:
+                report1h = trend_report(get_candles(pair, 60), "1H")
+                print_trend(market, "1H", report1h)
+
+                if not report1h["valid"] or not report1h["bullish"]:
+                    print(f"{market}: 1H trend rejected")
+                    continue
+
+                report4h = trend_report(get_candles(pair, 240), "4H")
+                print_trend(market, "4H", report4h)
+
+                if not report4h["valid"] or not report4h["bullish"]:
+                    print(
+                        f"{market}: 4H warning (advisory); "
+                        "continuing to entry test."
+                    )
+
+            candles15 = get_candles(pair, 15)
+            candles5 = get_candles(pair, 5)
 
             if candles5:
                 latest_prices[market] = candles5[-1]["close"]
 
-            # Manage open positions before new entries.
-            manage_position(state, market, pair, candles5)
-
-            if market in state["positions"]:
-                print(f"{market}: existing position remains open")
-                continue
-
             # Test mode: open one paper trade, skip all filters.
-            if (
-                FORCE_TEST_TRADE
-                and market == FORCE_TEST_MARKET
-                and candles15
-                and candles5
-            ):
+            if forced and candles15 and candles5:
                 last = candles15[-1]
                 current_atr = atr(candles15)
 
@@ -820,34 +853,7 @@ def main():
                         },
                         candles5[-1]["time"]
                     )
-                    continue
-
-            report1h = trend_report(candles60, "1H")
-            report4h = trend_report(candles240, "4H")
-
-            print_trend(market, "1H", report1h)
-            print_trend(market, "4H", report4h)
-
-            if not report1h["valid"]:
-                print(f"{market}: insufficient 1H trend data")
                 continue
-
-            if not report1h["bullish"]:
-                print(f"{market}: 1H trend rejected")
-                continue
-
-            # 4H is advisory, never a hard rejection.
-            if report4h["valid"] and not report4h["bullish"]:
-                print(
-                    f"{market}: 4H bearish warning; "
-                    "continuing to entry test."
-                )
-
-            if not report4h["valid"]:
-                print(
-                    f"{market}: 4H unavailable; "
-                    "continuing to entry test."
-                )
 
             signal, reason = check_gwvsa_entry(candles15, candles5)
 
