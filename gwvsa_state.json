@@ -1,8 +1,22 @@
 {
-  "cash": 2000.0,
-  "positions": {},
-  "last_signal": {},
-  "last_processed_5m": {},
+  "cash": 1799.8,
+  "positions": {
+    "XBT/CAD": {
+      "quantity": 0.002160689702351446,
+      "entry": 92563.03659999999,
+      "stop": 92227.79571428572,
+      "target": 93233.51837142854,
+      "entry_cost": 200.2,
+      "entry_time": 1794965648,
+      "signal_time": 1794964500
+    }
+  },
+  "last_signal": {
+    "XBT/CAD": 1794964500
+  },
+  "last_processed_5m": {
+    "XBT/CAD": 1794965100
+  },
   "total_trades": 0,
   "winning_trades": 0,
   "losing_trades": 0,

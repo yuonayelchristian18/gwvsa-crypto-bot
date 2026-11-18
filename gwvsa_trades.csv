@@ -1,1 +1,2 @@
 time,market,side,quantity,entry_price,exit_price,stop_loss,take_profit,net_pnl,result
+2026-11-18T01:34:08.186024+00:00,XBT/CAD,BUY,0.00216069,92563.0366,,92227.79571429,93233.51837143,,OPEN_MOMENTUM
