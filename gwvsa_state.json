@@ -1,5 +1,5 @@
 {
-  "cash": 1058.4459659377862,
+  "cash": 1473.8723438198492,
   "positions": {
     "VVV/USD": {
       "quantity": 1.921039986642488,
@@ -40,19 +40,6 @@
       "entry_time": 1794998432,
       "signal_time": 1794996900
     },
-    "PENGU/USD": {
-      "quantity": 18609.721618383315,
-      "entry": 0.006870529345679999,
-      "stop": 0.0067834893600000005,
-      "target": 0.007160390270817836,
-      "risk": 8.703998567999825e-05,
-      "atr": 4.2951600000000106e-05,
-      "tier": "SMALL",
-      "target_profit": 5.0,
-      "entry_cost": 127.98649713253208,
-      "entry_time": 1795001594,
-      "signal_time": 1795000500
-    },
     "AKE/USD": {
       "quantity": 3174.8710892295317,
       "entry": 0.014641350907462203,
@@ -65,19 +52,6 @@
       "entry_cost": 46.53088610506968,
       "entry_time": 1795001639,
       "signal_time": 1795000500
-    },
-    "UNI/USD": {
-      "quantity": 26.720650838424902,
-      "entry": 7.484847626255999,
-      "stop": 7.438003488642857,
-      "target": 7.732334840015125,
-      "risk": 0.04684413761314232,
-      "atr": 0.03209044542857166,
-      "tier": "MEDIUM",
-      "target_profit": 6.0,
-      "entry_cost": 200.2,
-      "entry_time": 1795004782,
-      "signal_time": 1795003200
     },
     "AAVE/USD": {
       "quantity": 0.6886435398287412,
@@ -92,18 +66,20 @@
       "entry_time": 1795004795,
       "signal_time": 1795003200
     },
-    "TRUMP/USD": {
-      "quantity": 89.64124944896449,
-      "entry": 1.3896911027999999,
-      "stop": 1.371511287857143,
-      "target": 1.4497567504221016,
-      "risk": 0.01817981494285692,
-      "atr": 0.004191488571428592,
-      "tier": "SMALL",
-      "target_profit": 5.0,
-      "entry_cost": 124.69822044990444,
-      "entry_time": 1795004819,
-      "signal_time": 1795003200
+    "ICNT/USD": {
+      "quantity": 66.86175385926985,
+      "entry": 0.472284324512,
+      "stop": 0.44373116051428574,
+      "target": 0.5293906525074284,
+      "risk": 0.028553163997714237,
+      "atr": 0.02159474742857143,
+      "tier": "MEDIUM",
+      "score": 5,
+      "r_multiple": 2.0,
+      "target_profit": 3.72,
+      "entry_cost": 31.609336015369983,
+      "entry_time": 1795008730,
+      "signal_time": 1795007700
     }
   },
   "last_signal": {
@@ -127,20 +103,19 @@
     "PENGU/USD": 1795000500,
     "AKE/USD": 1795000500,
     "UNI/USD": 1795003200,
-    "TRUMP/USD": 1795003200
+    "TRUMP/USD": 1795003200,
+    "ICNT/USD": 1795007700
   },
   "last_processed_5m": {
-    "VVV/USD": 1795004400,
-    "USELESS/USD": 1795004400,
-    "TRX/USD": 1795004400,
-    "PENGU/USD": 1795004400,
-    "AKE/USD": 1795004400,
-    "UNI/USD": 1795004400,
-    "AAVE/USD": 1795004400,
-    "TRUMP/USD": 1795004400
+    "VVV/USD": 1795008300,
+    "USELESS/USD": 1795008300,
+    "TRX/USD": 1795008300,
+    "AKE/USD": 1795008300,
+    "AAVE/USD": 1795008300,
+    "ICNT/USD": 1795008300
   },
-  "total_trades": 19,
+  "total_trades": 22,
   "winning_trades": 3,
-  "losing_trades": 16,
-  "realized_pnl": -24.158828682675704
+  "losing_trades": 19,
+  "realized_pnl": -30.007832367679498
 }
