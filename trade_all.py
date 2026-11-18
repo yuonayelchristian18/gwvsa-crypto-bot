@@ -19,12 +19,44 @@ MAX_POSITION_VALUE = 200.00
 
 FEE_RATE = 0.001
 SLIPPAGE = 0.0015
-REWARD_RISK = 2.0
+# Dynamic take-profit tiers: (name, min net profit, max net profit) in CAD.
+# A stronger setup earns a bigger profit target.
+TIERS = [
+    ("SMALL", 1.00, 5.00),
+    ("MEDIUM", 6.00, 25.00),
+    ("STRONG", 26.00, 100.00),
+    ("EXCEPTIONAL", 101.00, 1000.00),
+]
+
+# Optional: move the stop to breakeven, then trail the high, once a
+# trade is up by TRAIL_START_R x its risk.
+USE_TRAILING_STOP = True
+TRAIL_START_R = 1.0
+TRAIL_ATR_MULT = 1.5
+TRAIL_TIGHTEN = 0.5   # trail gets up to 50% tighter as price nears target
+
+# Entry signal tuning
+DISPLACEMENT_ATR = 1.0   # impulsive candle body must be >= this x ATR
+MIN_STOP_PCT = 0.004     # stop at least 0.4% below entry (outside noise)
+MAX_STOP_PCT = 0.08      # skip setups needing a stop wider than 8%
+
+# Execution realism
+MAX_ENTRY_DRIFT = 0.01      # skip if live ask is >1% above the signal close
+MAX_TARGET_MOVE_PCT = 0.25  # a target never needs more than a 25% price move
+
+# Slippage by 24h CAD volume: (minimum volume, slippage). Thin coins slip more.
+SLIPPAGE_TIERS = [
+    (1_000_000, 0.0010),
+    (100_000, 0.0015),
+    (20_000, 0.0030),
+    (5_000, 0.0050),
+    (0, 0.0100),
+]
 
 # Entry filter settings (easy to tune)
 RSI_MIN = 30
 RSI_MAX = 80
-MIN_CONFIRMATIONS = 1        # out of 3 on the 5m chart
+MIN_CONFIRMATIONS = 2        # out of 3 on the 5m chart
 REQUIRE_RETEST = False       # breakout alone is enough
 ALLOW_MOMENTUM_ENTRY = True  # third setup: 15m momentum
 
@@ -58,6 +90,21 @@ TRADE_HEADERS = [
 # ============================================================
 # KRAKEN API
 # ============================================================
+
+MARKET_SLIPPAGE = {}
+
+
+def slippage_from_volume(volume_cad):
+    for minimum, slip in SLIPPAGE_TIERS:
+        if volume_cad >= minimum:
+            return slip
+
+    return SLIPPAGE_TIERS[-1][1]
+
+
+def slippage_for(market):
+    return MARKET_SLIPPAGE.get(market, SLIPPAGE)
+
 
 def api_get(endpoint, params=None):
     query = urllib.parse.urlencode(params or {})
@@ -130,6 +177,7 @@ def discover_markets(held=()):
         # Always keep markets with open positions so they get managed.
         if market in held or volume >= MIN_24H_VOLUME_CAD:
             scored.append((volume, market, c["pair"]))
+            MARKET_SLIPPAGE[market] = slippage_from_volume(volume)
         else:
             print(f"Skipped {market}: 24h volume ${volume:,.0f} CAD")
 
@@ -180,6 +228,18 @@ def get_ticker_price(pair):
 
     ticker = next(iter(result.values()))
     return float(ticker["c"][0])
+
+
+def get_ask_price(pair):
+    result = api_get("Ticker", {"pair": pair})
+
+    if not result:
+        raise RuntimeError("Ticker returned no market data")
+
+    ticker = next(iter(result.values()))
+    ask = float(ticker["a"][0])
+
+    return ask if ask > 0 else float(ticker["c"][0])
 
 
 # ============================================================
@@ -374,7 +434,20 @@ def log_trade(row):
 # GWVSA ENTRY CHECK
 # ============================================================
 
-def check_gwvsa_entry(candles15, candles5):
+def last_swing_high(candles, before, lookback=15):
+    """Most recent fractal swing high (higher than 2 candles each side)."""
+    for k in range(before - 3, max(before - lookback, 2) - 1, -1):
+        high = candles[k]["high"]
+
+        if all(
+            high > candles[j]["high"] for j in (k - 2, k - 1, k + 1, k + 2)
+        ):
+            return high
+
+    return None
+
+
+def check_gwvsa_entry(candles15, candles5, slip=SLIPPAGE):
     if len(candles15) < 30:
         return None, "Not enough 15m candles"
 
@@ -396,6 +469,7 @@ def check_gwvsa_entry(candles15, candles5):
     # Liquidity sweep and recovery.
     sweep_found = False
     swing_low = None
+    sweep_index = None
 
     start = max(10, len(candles15) - 9)
 
@@ -409,6 +483,7 @@ def check_gwvsa_entry(candles15, candles5):
         ):
             sweep_found = True
             swing_low = candles15[i]["low"]
+            sweep_index = i
 
     # Breakout and retest.
     previous_highs = [c["high"] for c in candles15[-9:-1]]
@@ -422,6 +497,47 @@ def check_gwvsa_entry(candles15, candles5):
     )
 
     breakout_ok = structure_break and (retest or not REQUIRE_RETEST)
+    retest_ok = structure_break and retest
+
+    # Market structure shift: after the sweep, price closes above the
+    # high that formed just before it.
+    mss = False
+
+    if sweep_found:
+        reference_high = last_swing_high(candles15, sweep_index)
+
+        if reference_high is None:
+            reference_high = max(
+                c["high"]
+                for c in candles15[max(0, sweep_index - 5):sweep_index]
+            )
+
+        mss = any(
+            c["close"] > reference_high
+            for c in candles15[sweep_index + 1:]
+        )
+
+    # Displacement: a strong bullish candle closing near its high that
+    # leaves a fair value gap (the next candle's low stays above the
+    # high of the candle before it).
+    displacement = False
+    end = len(candles15) - 1
+
+    for b in (end - 2, end - 1):
+        before = candles15[b - 1]
+        mid = candles15[b]
+        after = candles15[b + 1]
+
+        body = mid["close"] - mid["open"]
+        span = mid["high"] - mid["low"]
+
+        if (
+            span > 0
+            and body >= DISPLACEMENT_ATR * current_atr
+            and (mid["close"] - mid["low"]) / span >= 0.75
+            and after["low"] > before["high"]
+        ):
+            displacement = True
 
     # Momentum setup: price above 15m EMA 20 with healthy RSI.
     e8_15 = ema(closes, 8)
@@ -476,16 +592,27 @@ def check_gwvsa_entry(candles15, candles5):
             f"(best of last 3 candles: {confirmations}/3)"
         )
 
-    recent_low = min(c["low"] for c in candles15[-8:])
-
+    # Stop goes where the setup is proven wrong.
     if sweep_found:
-        recent_low = min(recent_low, swing_low)
+        stop = swing_low - (0.25 * current_atr)
+    elif breakout_ok:
+        stop = min(
+            breakout_level - (0.50 * current_atr),
+            current["low"] - (0.20 * current_atr)
+        )
+    else:
+        stop = (
+            min(c["low"] for c in candles15[-8:])
+            - (0.20 * current_atr)
+        )
 
-    stop = recent_low - (0.20 * current_atr)
-    estimated_buy = current["close"] * (1 + SLIPPAGE)
+    estimated_buy = current["close"] * (1 + slip)
 
-    if stop >= estimated_buy:
-        return None, "Invalid stop-loss"
+    # Not inside normal noise, and not so far away it is dead weight.
+    stop = min(stop, estimated_buy * (1 - MIN_STOP_PCT))
+
+    if (estimated_buy - stop) / estimated_buy > MAX_STOP_PCT:
+        return None, f"Stop too wide (over {MAX_STOP_PCT:.0%})"
 
     return {
         "candle_time": current["time"],
@@ -493,6 +620,12 @@ def check_gwvsa_entry(candles15, candles5):
         "stop": stop,
         "atr": current_atr,
         "rsi": current_rsi,
+        "confirmations": confirmations,
+        "sweep": sweep_found,
+        "breakout": breakout_ok,
+        "mss": mss,
+        "displacement": displacement,
+        "retest": retest_ok,
         "setup": (
             "SWEEP" if sweep_found
             else "BREAKOUT" if breakout_ok
@@ -505,11 +638,50 @@ def check_gwvsa_entry(candles15, candles5):
 # PAPER BUY
 # ============================================================
 
+def breakeven_price(entry, slip=SLIPPAGE):
+    """Stop price that exits at net zero after fees and slippage."""
+    return entry * (1 + FEE_RATE) / ((1 - slip) * (1 - FEE_RATE))
+
+
+def opportunity_tier(signal):
+    """Score the setup (1-11) and return (tier name, net profit target)."""
+    score = {"SWEEP": 2, "BREAKOUT": 2, "MOMENTUM": 1}.get(
+        signal.get("setup"), 1
+    )
+
+    if signal.get("sweep") and signal.get("breakout"):
+        score += 1
+
+    score += signal.get("confirmations", 0)  # 0-3
+
+    if signal.get("four_h_bullish"):
+        score += 2
+
+    for key in ("mss", "displacement", "retest"):
+        if signal.get(key):
+            score += 1
+
+    if score <= 4:
+        index, fraction = 0, (score - 1) / 3
+    elif score <= 7:
+        index, fraction = 1, (score - 5) / 2
+    elif score <= 9:
+        index, fraction = 2, score - 8
+    else:
+        index, fraction = 3, score - 10
+
+    fraction = min(max(fraction, 0), 1)
+    name, low, high = TIERS[index]
+
+    return name, round(low + (high - low) * fraction, 2)
+
+
 def open_position(state, market, signal, latest_5m_time):
     if market in state["positions"]:
         return
 
-    buy_price = signal["entry_reference"] * (1 + SLIPPAGE)
+    slip = slippage_for(market)
+    buy_price = signal["entry_reference"] * (1 + slip)
     stop = signal["stop"]
 
     risk_per_unit = buy_price - stop
@@ -518,7 +690,13 @@ def open_position(state, market, signal, latest_5m_time):
         print(f"{market}: invalid risk")
         return
 
-    quantity_by_risk = RISK_PER_TRADE / risk_per_unit
+    # Real loss per unit if stopped out: entry fee + exit slippage + exit fee.
+    loss_per_unit = (
+        buy_price * (1 + FEE_RATE)
+        - stop * (1 - slip) * (1 - FEE_RATE)
+    )
+
+    quantity_by_risk = RISK_PER_TRADE / loss_per_unit
     quantity_by_allocation = MAX_POSITION_VALUE / buy_price
 
     affordable_quantity = state["cash"] / (
@@ -543,7 +721,23 @@ def open_position(state, market, signal, latest_5m_time):
         print(f"{market}: insufficient cash after fee")
         return
 
-    target = buy_price + risk_per_unit * REWARD_RISK
+    tier, target_profit = opportunity_tier(signal)
+
+    # Keep the target reachable: never ask for more than a
+    # MAX_TARGET_MOVE_PCT price move on this position.
+    target_profit = round(min(target_profit, notional * MAX_TARGET_MOVE_PCT), 2)
+
+    if target_profit < TIERS[0][1]:
+        print(
+            f"{market}: skipped - position too small for the "
+            f"${TIERS[0][1]:.2f} minimum target"
+        )
+        return
+
+    # Exit price that nets exactly target_profit after fees and slippage.
+    target = (target_profit + total_cost) / (
+        quantity * (1 - FEE_RATE) * (1 - slip)
+    )
 
     state["cash"] -= total_cost
 
@@ -552,6 +746,10 @@ def open_position(state, market, signal, latest_5m_time):
         "entry": buy_price,
         "stop": stop,
         "target": target,
+        "risk": risk_per_unit,
+        "atr": signal.get("atr"),
+        "tier": tier,
+        "target_profit": target_profit,
         "entry_cost": total_cost,
         "entry_time": int(time.time()),
         "signal_time": signal["candle_time"]
@@ -573,16 +771,25 @@ def open_position(state, market, signal, latest_5m_time):
         round(stop, 8),
         round(target, 8),
         "",
-        "OPEN_" + signal["setup"]
+        "OPEN_" + signal["setup"] + "_" + tier
     ])
 
     print("\n========== PAPER BUY ==========")
     print(f"Market:        {market}")
     print(f"Setup:         {signal['setup']}")
+    tags = [
+        name for key, name in (
+            ("sweep", "sweep"), ("mss", "structure shift"),
+            ("displacement", "displacement"), ("retest", "retest"),
+            ("four_h_bullish", "4H trend"),
+        ) if signal.get(key)
+    ]
+    print(f"Confluence:    {', '.join(tags) or 'none'}")
     print(f"Quantity:      {quantity:.8f}")
     print(f"Buy price:     {buy_price:.8f}")
     print(f"Stop loss:     {stop:.8f}")
     print(f"Take profit:   {target:.8f}")
+    print(f"Opportunity:   {tier} (target ${target_profit:.2f} CAD)")
     print(f"Risk budget:   ${RISK_PER_TRADE:.2f} CAD")
     print(f"Position cost: ${total_cost:.4f} CAD")
     print("================================")
@@ -595,7 +802,7 @@ def open_position(state, market, signal, latest_5m_time):
 def close_position(state, market, exit_reference, reason):
     position = state["positions"][market]
 
-    sell_price = exit_reference * (1 - SLIPPAGE)
+    sell_price = exit_reference * (1 - slippage_for(market))
     proceeds = position["quantity"] * sell_price
     exit_fee = proceeds * FEE_RATE
 
@@ -706,22 +913,57 @@ def manage_position(state, market, pair, candles5):
     )
 
     # Process every available candle chronologically.
+    position.setdefault("risk", position["entry"] - position["stop"])
+
     for candle in new_candles:
         stop_hit = candle["low"] <= position["stop"]
         target_hit = candle["high"] >= position["target"]
 
         # Stop first if both were reached in one candle.
         if stop_hit:
-            close_position(
-                state, market, position["stop"], "STOP_LOSS"
+            reason = (
+                "TRAILING_STOP"
+                if position["stop"] >= position["entry"]
+                else "STOP_LOSS"
             )
+            # A candle that opens below the stop fills at the open.
+            if candle["open"] < position["stop"]:
+                reason += "_GAP"
+
+            fill = min(position["stop"], candle["open"])
+            close_position(state, market, fill, reason)
             return
 
         if target_hit:
-            close_position(
-                state, market, position["target"], "TAKE_PROFIT"
-            )
+            # A candle that opens above the target fills at the open.
+            fill = max(position["target"], candle["open"])
+            close_position(state, market, fill, "TAKE_PROFIT")
             return
+
+        # Dynamic take-profit: breakeven, then trail the high.
+        risk = position["risk"]
+
+        if (
+            USE_TRAILING_STOP
+            and candle["high"] >= position["entry"] + TRAIL_START_R * risk
+        ):
+            gap = position["target"] - position["entry"]
+            progress = min(max(
+                (candle["high"] - position["entry"]) / gap, 0
+            ), 1)
+
+            distance = (
+                TRAIL_ATR_MULT * (1 - TRAIL_TIGHTEN * progress)
+                * position["atr"]
+                if position.get("atr") else risk
+            )
+            new_stop = max(
+                breakeven_price(position["entry"], slippage_for(market)),
+                candle["high"] - distance
+            )
+
+            if new_stop > position["stop"]:
+                position["stop"] = new_stop
 
         state["last_processed_5m"][market] = candle["time"]
         save_state(state)
@@ -750,12 +992,20 @@ def print_status(state, latest_prices):
 
     for market, position in state["positions"].items():
         price = latest_prices.get(market, position["entry"])
-        open_value += position["quantity"] * price
+        # Value at what a sale would really return (slippage + exit fee).
+        open_value += (
+            position["quantity"] * price
+            * (1 - slippage_for(market)) * (1 - FEE_RATE)
+        )
 
     equity = state["cash"] + open_value
 
-    print(f"Open position value: ${open_value:.2f} CAD")
+    open_cost = sum(p["entry_cost"] for p in state["positions"].values())
+
+    print(f"Open position value: ${open_value:.2f} CAD (after exit costs)")
+    print(f"Unrealized P/L:      ${open_value - open_cost:.2f} CAD")
     print(f"Estimated equity:    ${equity:.2f} CAD")
+    print(f"Total P/L vs start:  ${equity - STARTING_BALANCE:.2f} CAD")
     print("=========================================")
 
 
@@ -814,6 +1064,8 @@ def main():
                 print(f"{market}: max open positions reached")
                 continue
 
+            four_h = False
+
             # Cheap 1H check first; only fetch more data if it passes.
             if not forced:
                 report1h = trend_report(get_candles(pair, 60), "1H")
@@ -825,6 +1077,7 @@ def main():
 
                 report4h = trend_report(get_candles(pair, 240), "4H")
                 print_trend(market, "4H", report4h)
+                four_h = report4h["valid"] and report4h["bullish"]
 
                 if not report4h["valid"] or not report4h["bullish"]:
                     print(
@@ -860,7 +1113,9 @@ def main():
                     )
                 continue
 
-            signal, reason = check_gwvsa_entry(candles15, candles5)
+            signal, reason = check_gwvsa_entry(
+                candles15, candles5, slippage_for(market)
+            )
 
             print(f"{market}: ENTRY CHECK: {reason}")
 
@@ -870,6 +1125,20 @@ def main():
             if state["last_signal"].get(market) == signal["candle_time"]:
                 print(f"{market}: signal already processed")
                 continue
+
+            # Enter at the live ask, not the stale candle close.
+            ask = get_ask_price(pair)
+            drift = ask / signal["entry_reference"] - 1
+
+            if drift > MAX_ENTRY_DRIFT:
+                print(
+                    f"{market}: skipped - ask is {drift:.2%} above "
+                    "the signal close"
+                )
+                continue
+
+            signal["entry_reference"] = ask
+            signal["four_h_bullish"] = four_h
 
             open_position(
                 state,
