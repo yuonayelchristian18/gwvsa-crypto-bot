@@ -1,6 +1,37 @@
 {
-  "cash": 1967.3156419730662,
-  "positions": {},
+  "cash": 1859.9360978503519,
+  "positions": {
+    "BLESS/USD": {
+      "quantity": 4847.494710250942,
+      "entry": 0.015863498167840002,
+      "stop": 0.015505517946285716,
+      "target": 0.016579458610948575,
+      "risk": 0.00035798022155428613,
+      "atr": 0.000273226068571428,
+      "tier": "MEDIUM",
+      "score": 5,
+      "r_multiple": 2.0,
+      "target_profit": 3.19,
+      "entry_cost": 76.9751216781346,
+      "entry_time": 1795018666,
+      "signal_time": 1795017600
+    },
+    "PIEVERSE/USD": {
+      "quantity": 6.67879606484705,
+      "entry": 4.547832888034,
+      "stop": 4.263578102457143,
+      "target": 5.116342459187713,
+      "risk": 0.2842547855768567,
+      "atr": 0.2115658677142858,
+      "tier": "MEDIUM",
+      "score": 6,
+      "r_multiple": 2.0,
+      "target_profit": 3.68,
+      "entry_cost": 30.404422444579655,
+      "entry_time": 1795018675,
+      "signal_time": 1795017600
+    }
+  },
   "last_signal": {
     "XBT/CAD": 1794979800,
     "XRP/CAD": 1794972600,
@@ -24,9 +55,13 @@
     "UNI/USD": 1795003200,
     "TRUMP/USD": 1795003200,
     "ICNT/USD": 1795007700,
-    "BLESS/USD": 1795011300
+    "BLESS/USD": 1795017600,
+    "PIEVERSE/USD": 1795017600
   },
-  "last_processed_5m": {},
+  "last_processed_5m": {
+    "BLESS/USD": 1795018200,
+    "PIEVERSE/USD": 1795018200
+  },
   "total_trades": 29,
   "winning_trades": 6,
   "losing_trades": 23,
