@@ -35,7 +35,7 @@ FORCE_TEST_MARKET = "SOL/CAD"
 
 # All-crypto scanning settings
 QUOTE = "CAD"
-MIN_24H_VOLUME_CAD = 5000   # skip dead/illiquid coins
+MIN_24H_VOLUME_CAD = 500    # skip dead/illiquid coins (0 = no filter)
 MAX_OPEN_POSITIONS = 8      # 8 x $200 fits in the $2000 account
 CALL_DELAY = 1.1            # seconds between Kraken calls
 
@@ -130,6 +130,11 @@ def discover_markets(held=()):
         # Always keep markets with open positions so they get managed.
         if market in held or volume >= MIN_24H_VOLUME_CAD:
             scored.append((volume, market, c["pair"]))
+        else:
+            print(f"Skipped {market}: 24h volume ${volume:,.0f} CAD")
+
+    print(f"Kraken lists {len(candidates)} online {QUOTE} pairs; "
+          f"{len(scored)} kept")
 
     scored.sort(reverse=True)  # most liquid first
     found = {market: pair for _, market, pair in scored}
