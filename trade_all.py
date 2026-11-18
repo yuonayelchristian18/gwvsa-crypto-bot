@@ -8,19 +8,26 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V7
+# GWVSA PAPER TRADING BOT V8
 # Kraken public data ONLY. NO REAL ORDERS.
 #
-# What changed from V6:
-#  - Take-profit is now a multiple of the risk (R), not a CAD tier,
-#    so targets match the stop distance.
-#  - 4H trend is a HARD filter (no more trading against it).
-#  - Gold tokens / extra stablecoins excluded.
-#  - Min 24h volume raised (thin coins have brutal slippage).
-#  - Stops must be wide enough to survive round-trip costs.
-#  - Better API retries (network errors, HTTP 429).
-#  - Per-trade log now records setup + score for later analysis.
+# What changed from V7:
+#  - Trailing stop is now an on/off switch and is OFF by default
+#    (V7 trailed too tightly and cut winners far below target).
+#    If you turn it on, it starts later (1.5R) and trails wider.
+#  - Momentum entries are OFF by default (they mostly bought
+#    bounces in downtrends).
+#  - 5m confirmation now needs all 3 checks (was 2 of 3).
+#  - Old records are archived automatically when the bot version
+#    changes, so V8 stats start clean (see ARCHIVE_DIR).
+#  - Every trade row now logs setup, score, tier, R multiple, RSI,
+#    confirmations, hold time and P/L in R, so you can see which
+#    setups win and lose.
+#  - Account report now shows average win, average loss, profit
+#    factor, expectancy and the win rate needed to break even.
 # ============================================================
+
+BOT_VERSION = "V8"
 
 API = "https://api.kraken.com/0/public"
 
@@ -44,9 +51,11 @@ MIN_NET_RR = 1.3            # net profit at target must be >= 1.3x net loss at s
 MAX_TARGET_MOVE_PCT = 0.25  # a target never needs more than a 25% move
 
 # Trailing stop: breakeven, then trail the high once up TRAIL_START_R x risk.
-USE_TRAILING_STOP = True
-TRAIL_START_R = 1.0
-TRAIL_ATR_MULT = 1.5
+# OFF by default: V7's trail was tighter than normal 15m noise and cut
+# winners short. Turn on to compare (change only one thing at a time).
+USE_TRAILING_STOP = False
+TRAIL_START_R = 1.5
+TRAIL_ATR_MULT = 2.5
 TRAIL_TIGHTEN = 0.5
 
 # Entry signal tuning
@@ -70,9 +79,9 @@ SLIPPAGE_TIERS = [
 # Entry filter settings
 RSI_MIN = 30
 RSI_MAX = 80
-MIN_CONFIRMATIONS = 2
+MIN_CONFIRMATIONS = 3       # was 2 of 3
 REQUIRE_RETEST = False
-ALLOW_MOMENTUM_ENTRY = True
+ALLOW_MOMENTUM_ENTRY = False  # was True; momentum entries lost most often
 REQUIRE_4H_BULLISH = True   # hard filter: skip anything the 4H trend rejects
 
 FORCE_TEST_TRADE = os.environ.get("FORCE_TEST_TRADE") == "1"
@@ -82,7 +91,7 @@ FORCE_TEST_MARKET = "SOL/CAD"
 QUOTE = "CAD"
 USE_USD_PAIRS = True
 MAX_MARKETS = 50
-MIN_24H_VOLUME_CAD = 20_000  # was 500; thin coins slip too much
+MIN_24H_VOLUME_CAD = 20_000  # thin coins slip too much
 MAX_OPEN_POSITIONS = 8
 CALL_DELAY = 1.1
 
@@ -97,11 +106,14 @@ EXCLUDE_BASES = {
 
 STATE_FILE = "gwvsa_state.json"
 TRADE_FILE = "gwvsa_trades.csv"
+ARCHIVE_DIR = "archive"
 
 TRADE_HEADERS = [
     "time_utc", "market", "side", "quantity",
     "entry_price", "exit_price", "stop_loss",
-    "take_profit", "net_pnl_cad", "result"
+    "take_profit", "net_pnl_cad", "result",
+    "setup", "score", "tier", "r_multiple",
+    "rsi", "confirmations", "hold_minutes", "pnl_r"
 ]
 
 
@@ -139,7 +151,7 @@ def api_get(endpoint, params=None):
 
         request = urllib.request.Request(
             url,
-            headers={"User-Agent": "GWVSA-PaperTrader/7.0"}
+            headers={"User-Agent": "GWVSA-PaperTrader/8.0"}
         )
 
         try:
@@ -480,14 +492,63 @@ def print_trend(market, timeframe, report):
 # ACCOUNT FILES
 # ============================================================
 
+def archive_file(path, tag):
+    """Move a record file into ARCHIVE_DIR with a version tag and timestamp."""
+    if not os.path.exists(path):
+        return
+
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    base, ext = os.path.splitext(os.path.basename(path))
+    destination = os.path.join(ARCHIVE_DIR, f"{base}_{tag}_{stamp}{ext}")
+
+    os.replace(path, destination)
+    print(f"Archived {path} -> {destination}")
+
+
+def archive_old_records():
+    """If the saved state came from another bot version, archive it and
+    the trade log so the new version's stats start clean."""
+    if not os.path.exists(STATE_FILE):
+        return
+
+    version = None
+
+    try:
+        with open(STATE_FILE, "r") as file:
+            version = json.load(file).get("version")
+    except Exception:
+        pass
+
+    if version == BOT_VERSION:
+        return
+
+    tag = version or "pre-v8"
+    print(f"State is from {tag}; archiving old records for {BOT_VERSION}.")
+
+    archive_file(STATE_FILE, tag)
+    archive_file(TRADE_FILE, tag)
+
+
 def ensure_trade_file():
-    if not os.path.exists(TRADE_FILE):
-        with open(TRADE_FILE, "w", newline="") as file:
-            csv.writer(file).writerow(TRADE_HEADERS)
+    if os.path.exists(TRADE_FILE):
+        with open(TRADE_FILE, "r", newline="") as file:
+            first_row = next(csv.reader(file), None)
+
+        if first_row == TRADE_HEADERS:
+            return
+
+        # Old column layout: archive it rather than mixing formats.
+        archive_file(TRADE_FILE, "oldheaders")
+
+    with open(TRADE_FILE, "w", newline="") as file:
+        csv.writer(file).writerow(TRADE_HEADERS)
 
 
 def load_state():
     defaults = {
+        "version": BOT_VERSION,
         "cash": STARTING_BALANCE,
         "positions": {},
         "last_signal": {},
@@ -495,7 +556,9 @@ def load_state():
         "total_trades": 0,
         "winning_trades": 0,
         "losing_trades": 0,
-        "realized_pnl": 0.0
+        "realized_pnl": 0.0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
     }
 
     if os.path.exists(STATE_FILE):
@@ -521,6 +584,9 @@ def save_state(state):
 
 def log_trade(row):
     ensure_trade_file()
+
+    # Pad short rows so every row matches the header width.
+    row = list(row) + [""] * (len(TRADE_HEADERS) - len(row))
 
     with open(TRADE_FILE, "a", newline="") as file:
         csv.writer(file).writerow(row)
@@ -681,7 +747,8 @@ def check_gwvsa_entry(candles15, candles5, slip=SLIPPAGE):
     if confirmations < MIN_CONFIRMATIONS:
         return None, (
             f"5m confirmation rejected "
-            f"(best of last 3 candles: {confirmations}/3)"
+            f"(best of last 3 candles: {confirmations}/3, "
+            f"need {MIN_CONFIRMATIONS})"
         )
 
     # Stop goes where the setup is proven wrong.
@@ -853,6 +920,10 @@ def open_position(state, market, signal, latest_5m_time):
         "score": score,
         "r_multiple": r_multiple,
         "target_profit": target_profit,
+        "net_at_stop": net_at_stop,
+        "setup": signal.get("setup"),
+        "rsi": signal.get("rsi"),
+        "confirmations": signal.get("confirmations"),
         "entry_cost": total_cost,
         "entry_time": int(time.time()),
         "signal_time": signal["candle_time"]
@@ -864,6 +935,8 @@ def open_position(state, market, signal, latest_5m_time):
 
     save_state(state)
 
+    rsi_value = signal.get("rsi")
+
     log_trade([
         datetime.now(timezone.utc).isoformat(),
         market,
@@ -874,7 +947,15 @@ def open_position(state, market, signal, latest_5m_time):
         round(stop, 8),
         round(target, 8),
         "",
-        f"OPEN_{signal['setup']}_{tier}_score{score}_{r_multiple}R"
+        f"OPEN_{signal['setup']}_{tier}_score{score}_{r_multiple}R",
+        signal.get("setup", ""),
+        score,
+        tier,
+        r_multiple,
+        round(rsi_value, 2) if rsi_value else "",
+        signal.get("confirmations", ""),
+        "",
+        ""
     ])
 
     print("\n========== PAPER BUY ==========")
@@ -905,7 +986,7 @@ def open_position(state, market, signal, latest_5m_time):
 # PAPER SELL
 # ============================================================
 
-def close_position(state, market, exit_reference, reason):
+def close_position(state, market, exit_reference, reason, exit_time=None):
     position = state["positions"][market]
 
     sell_price = exit_reference * (1 - slippage_for(market))
@@ -921,8 +1002,22 @@ def close_position(state, market, exit_reference, reason):
 
     if net_pnl >= 0:
         state["winning_trades"] += 1
+        state["gross_profit"] += net_pnl
     else:
         state["losing_trades"] += 1
+        state["gross_loss"] += -net_pnl
+
+    # Hold time uses the exit candle's close when we know it, so a run
+    # that replays old candles doesn't overstate how long the trade lasted.
+    entry_time = position.get("entry_time")
+    finished = exit_time if exit_time else time.time()
+    hold_minutes = (
+        round(max(finished - entry_time, 0) / 60, 1) if entry_time else ""
+    )
+
+    planned_loss = position.get("net_at_stop")
+    pnl_r = round(net_pnl / planned_loss, 2) if planned_loss else ""
+    rsi_value = position.get("rsi")
 
     log_trade([
         datetime.now(timezone.utc).isoformat(),
@@ -934,7 +1029,15 @@ def close_position(state, market, exit_reference, reason):
         round(position["stop"], 8),
         round(position["target"], 8),
         round(net_pnl, 4),
-        reason
+        reason,
+        position.get("setup", ""),
+        position.get("score", ""),
+        position.get("tier", ""),
+        position.get("r_multiple", ""),
+        round(rsi_value, 2) if rsi_value else "",
+        position.get("confirmations", ""),
+        hold_minutes,
+        pnl_r
     ])
 
     print("\n========== PAPER SELL ==========")
@@ -942,6 +1045,10 @@ def close_position(state, market, exit_reference, reason):
     print(f"Reason:       {reason}")
     print(f"Sell price:   {sell_price:.8f}")
     print(f"NET P/L:      ${net_pnl:.4f} CAD")
+    if pnl_r != "":
+        print(f"P/L in R:     {pnl_r}R")
+    if hold_minutes != "":
+        print(f"Held:         {hold_minutes} min")
     print("================================")
 
     del state["positions"][market]
@@ -1021,6 +1128,7 @@ def manage_position(state, market, pair, candles5):
     for candle in new_candles:
         stop_hit = candle["low"] <= position["stop"]
         target_hit = candle["high"] >= position["target"]
+        candle_close_time = candle["time"] + 300
 
         # Stop first if both were reached in one candle (pessimistic).
         if stop_hit:
@@ -1033,15 +1141,19 @@ def manage_position(state, market, pair, candles5):
                 reason += "_GAP"
 
             fill = min(position["stop"], candle["open"])
-            close_position(state, market, fill, reason)
+            close_position(
+                state, market, fill, reason, candle_close_time
+            )
             return
 
         if target_hit:
             fill = max(position["target"], candle["open"])
-            close_position(state, market, fill, "TAKE_PROFIT")
+            close_position(
+                state, market, fill, "TAKE_PROFIT", candle_close_time
+            )
             return
 
-        # Breakeven, then trail the high.
+        # Breakeven, then trail the high (only when enabled).
         risk = position["risk"]
 
         if (
@@ -1081,6 +1193,7 @@ def manage_position(state, market, pair, candles5):
 
 def print_status(state, latest_prices):
     print("\n========== GWVSA PAPER ACCOUNT ==========")
+    print(f"Bot version:      {BOT_VERSION}")
     print(f"Starting balance: ${STARTING_BALANCE:.2f} CAD")
     print(f"Available cash:   ${state['cash']:.2f} CAD")
     print(f"Open positions:   {len(state['positions'])}")
@@ -1089,8 +1202,33 @@ def print_status(state, latest_prices):
     print(f"Losses:           {state['losing_trades']}")
 
     if state["total_trades"]:
-        rate = state["winning_trades"] / state["total_trades"]
+        wins = state["winning_trades"]
+        losses = state["losing_trades"]
+        rate = wins / state["total_trades"]
+
         print(f"Win rate:         {rate:.0%}")
+
+        avg_win = state["gross_profit"] / wins if wins else 0.0
+        avg_loss = state["gross_loss"] / losses if losses else 0.0
+        expectancy = state["realized_pnl"] / state["total_trades"]
+
+        print(f"Average win:      ${avg_win:.2f} CAD")
+        print(f"Average loss:     ${avg_loss:.2f} CAD")
+        print(f"Expectancy/trade: ${expectancy:.2f} CAD")
+
+        if state["gross_loss"] > 0:
+            factor = state["gross_profit"] / state["gross_loss"]
+            print(f"Profit factor:    {factor:.2f}")
+
+        if avg_win > 0 and avg_loss > 0:
+            needed = avg_loss / (avg_win + avg_loss)
+            print(f"Break-even win rate at these averages: {needed:.0%}")
+
+        if state["total_trades"] < 100:
+            print(
+                f"Note: only {state['total_trades']} trades; "
+                "wait for 100+ before judging the strategy."
+            )
 
     print(f"Realized P/L:     ${state['realized_pnl']:.2f} CAD")
 
@@ -1119,13 +1257,19 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print("\nGWVSA PAPER TRADING BOT V7 (TOP 50 MARKETS)")
+    print(f"\nGWVSA PAPER TRADING BOT {BOT_VERSION} (TOP 50 MARKETS)")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
+    print(
+        f"Settings: trailing stop {'ON' if USE_TRAILING_STOP else 'OFF'}, "
+        f"momentum entries {'ON' if ALLOW_MOMENTUM_ENTRY else 'OFF'}, "
+        f"min confirmations {MIN_CONFIRMATIONS}/3"
+    )
 
     if FORCE_TEST_TRADE:
         print(f"FORCE_TEST_TRADE is ON ({FORCE_TEST_MARKET})")
 
+    archive_old_records()
     ensure_trade_file()
     state = load_state()
     latest_prices = {}
