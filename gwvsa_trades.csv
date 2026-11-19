@@ -1,1 +1,2 @@
 time_utc,market,side,quantity,entry_price,exit_price,stop_loss,take_profit,net_pnl_cad,result,setup,score,tier,r_multiple,rsi,confirmations,hold_minutes,pnl_r
+2026-11-19T06:34:29.850447+00:00,ICNT/USD,BUY,203.55072607,0.4946484,,0.48628958,0.51554545,,OPEN_BREAKOUT_STRONG_score8_2.5R,BREAKOUT,8,STRONG,2.5,75.38,3,,
