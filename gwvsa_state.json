@@ -1,11 +1,34 @@
 {
   "version": "V8",
-  "cash": 2003.9431489725894,
-  "positions": {},
-  "last_signal": {
-    "ICNT/USD": 1795068900
+  "cash": 1896.6841285549842,
+  "positions": {
+    "VVV/USD": {
+      "quantity": 3.257053906636702,
+      "entry": 32.8984019364,
+      "stop": 32.38198005938895,
+      "target": 33.931245690422095,
+      "risk": 0.516421877011048,
+      "atr": 0.24905563142856987,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 3.04,
+      "net_at_stop": 1.9999999999999998,
+      "setup": "SWEEP",
+      "rsi": 38.37612768910469,
+      "confirmations": 3,
+      "entry_cost": 107.25902041760511,
+      "entry_time": 1795095808,
+      "signal_time": 1795094100
+    }
   },
-  "last_processed_5m": {},
+  "last_signal": {
+    "ICNT/USD": 1795068900,
+    "VVV/USD": 1795094100
+  },
+  "last_processed_5m": {
+    "VVV/USD": 1795095300
+  },
   "total_trades": 1,
   "winning_trades": 1,
   "losing_trades": 0,
