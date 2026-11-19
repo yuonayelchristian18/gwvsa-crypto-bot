@@ -1,12 +1,35 @@
 {
   "version": "V8",
-  "cash": 2006.3633002287488,
-  "positions": {},
+  "cash": 1970.9824824805287,
+  "positions": {
+    "LUNA/USD": {
+      "quantity": 501128.71115266206,
+      "entry": 7.05317246634e-05,
+      "stop": 6.674468837142857e-05,
+      "target": 7.810579724734286e-05,
+      "risk": 3.7870362919714315e-06,
+      "atr": 1.9013129142857128e-06,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 3.68,
+      "net_at_stop": 2.0,
+      "setup": "SWEEP",
+      "rsi": 60.939597315436245,
+      "confirmations": 3,
+      "entry_cost": 35.38081774822001,
+      "entry_time": 1795114357,
+      "signal_time": 1795113000
+    }
+  },
   "last_signal": {
     "ICNT/USD": 1795104900,
-    "VVV/USD": 1795094100
+    "VVV/USD": 1795094100,
+    "LUNA/USD": 1795113000
   },
-  "last_processed_5m": {},
+  "last_processed_5m": {
+    "LUNA/USD": 1795113900
+  },
   "total_trades": 3,
   "winning_trades": 2,
   "losing_trades": 1,
