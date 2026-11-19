@@ -1,6 +1,6 @@
 {
   "version": "V8",
-  "cash": 1970.9824824805287,
+  "cash": 1886.2632980073035,
   "positions": {
     "LUNA/USD": {
       "quantity": 501128.71115266206,
@@ -20,15 +20,36 @@
       "entry_cost": 35.38081774822001,
       "entry_time": 1795114357,
       "signal_time": 1795113000
+    },
+    "PIEVERSE/USD": {
+      "quantity": 19.685250456492614,
+      "entry": 4.299389032939,
+      "stop": 4.2105063135571426,
+      "target": 4.521595831393642,
+      "risk": 0.0888827193818571,
+      "atr": 0.04966392721428603,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 4.11,
+      "net_at_stop": 2.0,
+      "setup": "BREAKOUT",
+      "rsi": 50.53415344771767,
+      "confirmations": 3,
+      "entry_cost": 84.71918447322508,
+      "entry_time": 1795123621,
+      "signal_time": 1795122000
     }
   },
   "last_signal": {
     "ICNT/USD": 1795104900,
     "VVV/USD": 1795094100,
-    "LUNA/USD": 1795113000
+    "LUNA/USD": 1795113000,
+    "PIEVERSE/USD": 1795122000
   },
   "last_processed_5m": {
-    "LUNA/USD": 1795121400
+    "LUNA/USD": 1795123200,
+    "PIEVERSE/USD": 1795123200
   },
   "total_trades": 3,
   "winning_trades": 2,
