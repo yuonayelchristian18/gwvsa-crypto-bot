@@ -107,11 +107,17 @@ INCLUDE_STOCKS = True         # Kraken tokenized stocks, e.g. AAPLx/USD
 INCLUDE_FOREX = True          # fiat pairs quoted in USD, e.g. EUR/USD
 
 # Minimum 24h volume (CAD) per asset class; large orders need liquidity.
+# 0 = scan everything. Thin markets still get small positions because of
+# MAX_VOLUME_SHARE below.
 MIN_24H_VOLUME_CAD = {
-    "crypto": 500_000,
-    "stock": 100_000,
-    "forex": 100_000,
+    "crypto": 0,
+    "stock": 0,
+    "forex": 0,
 }
+
+# A position may be at most this share of the market's 24h volume, so big
+# orders aren't placed in thin markets (0.005 = 0.5%).
+MAX_VOLUME_SHARE = 0.005
 MAX_OPEN_POSITIONS = 2        # was 8; $1,200 positions can't be held 8 at a time
 CALL_DELAY = 1.1
 
@@ -145,6 +151,7 @@ TRADE_HEADERS = [
 # ============================================================
 
 MARKET_SLIPPAGE = {}
+MARKET_VOLUME = {}   # 24h volume in CAD
 MARKET_FX = {}   # CAD per 1 unit of the market's quote currency
 
 
@@ -339,6 +346,7 @@ def discover_markets(held=()):
     for volume, market, pair, fx in chosen:
         found[market] = pair
         MARKET_SLIPPAGE[market] = slippage_from_volume(volume)
+        MARKET_VOLUME[market] = volume
         MARKET_FX[market] = fx
 
     print(
@@ -919,6 +927,12 @@ def open_position(state, market, signal, latest_5m_time):
         quantity_by_allocation,
         affordable_quantity
     )
+
+    # Liquidity cap: don't be a big share of a thin market's daily volume.
+    volume = MARKET_VOLUME.get(market)
+
+    if volume is not None:
+        quantity = min(quantity, MAX_VOLUME_SHARE * volume / buy_price)
 
     if quantity <= 0:
         print(f"{market}: insufficient paper cash")
