@@ -1,24 +1,41 @@
-name: gwvsa-paper
+name: GWVSA Paper Trading Bot
+
 on:
   schedule:
-    - cron: "5 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
+
+concurrency:
+  group: gwvsa-bot
+  cancel-in-progress: false
+
 permissions:
   contents: write
-concurrency: gwvsa-paper
+
 jobs:
-  paper:
+  trade:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: {python-version: "3.11"}
-      - run: pip install -r requirements.txt
-      - run: python gwvsa_bot.py paper
-      - run: |
-          git config user.name "gwvsa-bot"
-          git config user.email "gwvsa-bot@users.noreply.github.com"
-          git add bot_state.json
-          git commit -m "paper state" || echo "no changes"
-          git push
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run bot
+        run: python trade_all.py
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gwvsa_state.json gwvsa_trades.csv
+          [ -d archive ] && git add archive
+          git diff --cached --quiet && exit 0
+          git commit -m "Update GWVSA paper trading account"
+          for i in 1 2 3; do
+            git pull --rebase -X theirs && git push && exit 0
+            sleep 5
+          done
+          exit 1
