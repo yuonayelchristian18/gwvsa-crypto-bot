@@ -8,10 +8,16 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V8.1
+# GWVSA PAPER TRADING BOT V8.2
 # Kraken public data ONLY. NO REAL ORDERS.
 #
-# What changed from V8:
+# What changed from V8.1:
+#  - Scans ALL Kraken markets: crypto, tokenized stocks (xStocks,
+#    e.g. AAPLx/USD) and forex (EUR/USD, GBP/USD, AUD/USD).
+#    Each asset class can be switched on/off, and has its own
+#    minimum-volume filter. MAX_MARKETS = None scans everything.
+#
+# V8.1 (vs V8):
 #  - Risk per trade raised 30x: $2 -> $60 (3% of the $2,000 account).
 #  - Max position value raised $200 -> $1,200 so it no longer caps
 #    the larger risk.
@@ -30,7 +36,7 @@ from datetime import datetime, timezone
 #    factor, expectancy and break-even win rate.
 # ============================================================
 
-BOT_VERSION = "V8.1"
+BOT_VERSION = "V8.2"
 
 API = "https://api.kraken.com/0/public"
 
@@ -93,19 +99,33 @@ FORCE_TEST_MARKET = "SOL/CAD"
 # All-crypto scanning settings
 QUOTE = "CAD"
 USE_USD_PAIRS = True
-MAX_MARKETS = 50
-MIN_24H_VOLUME_CAD = 500_000  # was 20_000; large orders need liquid coins
+MAX_MARKETS = None            # None = scan every market that passes the filters
+
+# Which asset classes to scan.
+INCLUDE_CRYPTO = True
+INCLUDE_STOCKS = True         # Kraken tokenized stocks, e.g. AAPLx/USD
+INCLUDE_FOREX = True          # fiat pairs quoted in USD, e.g. EUR/USD
+
+# Minimum 24h volume (CAD) per asset class; large orders need liquidity.
+MIN_24H_VOLUME_CAD = {
+    "crypto": 500_000,
+    "stock": 100_000,
+    "forex": 100_000,
+}
 MAX_OPEN_POSITIONS = 2        # was 8; $1,200 positions can't be held 8 at a time
 CALL_DELAY = 1.1
 
 # Stablecoins, fiat and gold/commodity tokens aren't worth trading.
 EXCLUDE_BASES = {
     "USDT", "USDC", "DAI", "PYUSD", "USDG", "EURT", "TUSD",
-    "USD", "EUR", "GBP", "AUD", "CAD", "CHF", "JPY",
+    "USD", "CAD",
     "USD1", "RLUSD", "EURQ", "USDQ", "EURR", "FDUSD", "USDD", "UST", "AUDX",
     "EURC", "USDE", "USDS", "USDR", "BUIDL", "USTB",
     "PAXG", "XAUT",
 }
+
+# Fiat currencies treated as forex when quoted against USD.
+FOREX_BASES = {"EUR", "GBP", "AUD", "NZD", "CHF", "JPY", "CAD"}
 
 STATE_FILE = "gwvsa_state.json"
 TRADE_FILE = "gwvsa_trades.csv"
@@ -213,12 +233,32 @@ def discover_markets(held=()):
         base = "DOGE" if base == "XDG" else base
         base = "BTC" if base == "XBT" else base
 
-        # Skip stablecoins, fiat, gold tokens, and tokenized stocks
-        # (lowercase 'x' suffix).
-        if base in EXCLUDE_BASES or base != base.upper():
+        # Work out the asset class.
+        if base in FOREX_BASES and quote == "USD" and base != "USD":
+            cls = "forex"
+        elif (
+            len(base) > 1 and base.endswith("x")
+            and base[:-1] == base[:-1].upper() and base[:-1].isalnum()
+        ):
+            cls = "stock"       # xStocks tokenized equities/ETFs
+        elif base == base.upper() and base not in EXCLUDE_BASES:
+            cls = "crypto"
+        else:
+            continue            # stablecoins, gold tokens, odd symbols
+
+        if (
+            (cls == "crypto" and not INCLUDE_CRYPTO)
+            or (cls == "stock" and not INCLUDE_STOCKS)
+            or (cls == "forex" and not INCLUDE_FOREX)
+        ):
             continue
 
-        entry = {"pair": info.get("altname", key), "key": key}
+        # Forex and stocks are only supported against USD (or CAD
+        # for crypto), since the bot converts everything to CAD.
+        if cls != "crypto" and quote != "USD":
+            continue
+
+        entry = {"pair": info.get("altname", key), "key": key, "cls": cls}
 
         # Keep the original Kraken base name in the market label so
         # open positions from earlier versions still match (XBT, DOGE).
@@ -272,19 +312,26 @@ def discover_markets(held=()):
 
     scored = []
     low_volume = 0
+    class_counts = {"crypto": 0, "stock": 0, "forex": 0}
 
     for _, volume, market, c in best.values():
-        if market in held or volume >= MIN_24H_VOLUME_CAD:
+        cls = c.get("cls", "crypto")
+
+        if market in held or volume >= MIN_24H_VOLUME_CAD[cls]:
             scored.append((volume, market, c["pair"], c["fx"]))
+            class_counts[cls] += 1
         else:
             low_volume += 1
 
     scored.sort(reverse=True)  # most liquid first
 
     chosen = [x for x in scored if x[1] in held]
-    chosen += [x for x in scored if x[1] not in held][
-        :max(MAX_MARKETS - len(chosen), 0)
-    ]
+    others = [x for x in scored if x[1] not in held]
+
+    if MAX_MARKETS is not None:
+        others = others[:max(MAX_MARKETS - len(chosen), 0)]
+
+    chosen += others
     chosen.sort(reverse=True)
 
     found = {}
@@ -297,6 +344,10 @@ def discover_markets(held=()):
     print(
         f"Kraken lists {len(candidates)} usable markets; "
         f"{low_volume} skipped for low volume; scanning {len(found)}"
+    )
+    print(
+        f"Passing volume filter: {class_counts['crypto']} crypto, "
+        f"{class_counts['stock']} stocks, {class_counts['forex']} forex"
     )
 
     return found, result
@@ -1260,7 +1311,7 @@ def print_status(state, latest_prices):
 # ============================================================
 
 def main():
-    print(f"\nGWVSA PAPER TRADING BOT {BOT_VERSION} (TOP 50 MARKETS)")
+    print(f"\nGWVSA PAPER TRADING BOT {BOT_VERSION} (ALL MARKETS)")
     print("Paper trading only. No real Kraken orders.")
     print("Time:", datetime.now(timezone.utc).isoformat())
     print(
