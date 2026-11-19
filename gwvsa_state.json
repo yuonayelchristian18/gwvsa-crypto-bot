@@ -1,38 +1,16 @@
 {
   "version": "V8",
-  "cash": 1955.849356618542,
-  "positions": {
-    "ICNT/USD": {
-      "quantity": 79.13034304196745,
-      "entry": 0.580691413302,
-      "stop": 0.5571110150571428,
-      "target": 0.6396424089141431,
-      "risk": 0.023580398244857248,
-      "atr": 0.019056094714285734,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 4.52,
-      "net_at_stop": 2.0,
-      "setup": "BREAKOUT",
-      "rsi": 73.07297019527235,
-      "confirmations": 3,
-      "entry_cost": 45.996261046848275,
-      "entry_time": 1795106024,
-      "signal_time": 1795104900
-    }
-  },
+  "cash": 2006.3633002287488,
+  "positions": {},
   "last_signal": {
     "ICNT/USD": 1795104900,
     "VVV/USD": 1795094100
   },
-  "last_processed_5m": {
-    "ICNT/USD": 1795108800
-  },
-  "total_trades": 2,
-  "winning_trades": 1,
+  "last_processed_5m": {},
+  "total_trades": 3,
+  "winning_trades": 2,
   "losing_trades": 1,
-  "realized_pnl": 1.845617665390364,
-  "gross_profit": 3.943148972589384,
+  "realized_pnl": 6.363300228748763,
+  "gross_profit": 8.460831535947783,
   "gross_loss": 2.09753130719902
 }
