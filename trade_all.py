@@ -8,32 +8,35 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V8
+# GWVSA PAPER TRADING BOT V8.1
 # Kraken public data ONLY. NO REAL ORDERS.
 #
-# What changed from V7:
-#  - Trailing stop is now an on/off switch and is OFF by default
-#    (V7 trailed too tightly and cut winners far below target).
-#    If you turn it on, it starts later (1.5R) and trails wider.
-#  - Momentum entries are OFF by default (they mostly bought
-#    bounces in downtrends).
-#  - 5m confirmation now needs all 3 checks (was 2 of 3).
-#  - Old records are archived automatically when the bot version
-#    changes, so V8 stats start clean (see ARCHIVE_DIR).
-#  - Every trade row now logs setup, score, tier, R multiple, RSI,
-#    confirmations, hold time and P/L in R, so you can see which
-#    setups win and lose.
-#  - Account report now shows average win, average loss, profit
-#    factor, expectancy and the win rate needed to break even.
+# What changed from V8:
+#  - Risk per trade raised 30x: $2 -> $60 (3% of the $2,000 account).
+#  - Max position value raised $200 -> $1,200 so it no longer caps
+#    the larger risk.
+#  - Max open positions lowered 8 -> 2 (big positions use most cash).
+#  - Minimum 24h volume raised to $500k CAD so large orders don't
+#    slip badly in thin coins.
+#  - Version bump archives V8 records so V8.1 stats start clean.
+#
+# From V8:
+#  - Trailing stop is an on/off switch, OFF by default.
+#  - Momentum entries OFF by default.
+#  - 5m confirmation needs all 3 checks.
+#  - Every trade row logs setup, score, tier, R multiple, RSI,
+#    confirmations, hold time and P/L in R.
+#  - Account report shows average win, average loss, profit
+#    factor, expectancy and break-even win rate.
 # ============================================================
 
-BOT_VERSION = "V8"
+BOT_VERSION = "V8.1"
 
 API = "https://api.kraken.com/0/public"
 
 STARTING_BALANCE = 2000.00
-RISK_PER_TRADE = 2.00
-MAX_POSITION_VALUE = 200.00
+RISK_PER_TRADE = 60.00        # was 2.00 (30x)
+MAX_POSITION_VALUE = 1200.00  # was 200.00
 
 FEE_RATE = 0.001
 SLIPPAGE = 0.0015
@@ -91,8 +94,8 @@ FORCE_TEST_MARKET = "SOL/CAD"
 QUOTE = "CAD"
 USE_USD_PAIRS = True
 MAX_MARKETS = 50
-MIN_24H_VOLUME_CAD = 20_000  # thin coins slip too much
-MAX_OPEN_POSITIONS = 8
+MIN_24H_VOLUME_CAD = 500_000  # was 20_000; large orders need liquid coins
+MAX_OPEN_POSITIONS = 2        # was 8; $1,200 positions can't be held 8 at a time
 CALL_DELAY = 1.1
 
 # Stablecoins, fiat and gold/commodity tokens aren't worth trading.
@@ -151,7 +154,7 @@ def api_get(endpoint, params=None):
 
         request = urllib.request.Request(
             url,
-            headers={"User-Agent": "GWVSA-PaperTrader/8.0"}
+            headers={"User-Agent": "GWVSA-PaperTrader/8.1"}
         )
 
         try:
@@ -1264,6 +1267,11 @@ def main():
         f"Settings: trailing stop {'ON' if USE_TRAILING_STOP else 'OFF'}, "
         f"momentum entries {'ON' if ALLOW_MOMENTUM_ENTRY else 'OFF'}, "
         f"min confirmations {MIN_CONFIRMATIONS}/3"
+    )
+    print(
+        f"Sizing: risk ${RISK_PER_TRADE:.2f}/trade, "
+        f"max position ${MAX_POSITION_VALUE:.2f}, "
+        f"max open {MAX_OPEN_POSITIONS}"
     )
 
     if FORCE_TEST_TRADE:
