@@ -88,7 +88,8 @@ SLIPPAGE_TIERS = [
 # Entry filter settings
 RSI_MIN = 30
 RSI_MAX = 80
-MIN_CONFIRMATIONS = 3       # was 2 of 3
+MIN_CONFIRMATIONS = 2       # 2 of 3 (V8 used 3 of 3; lowered for more trades)
+ALLOW_PULLBACK_1H = True    # also accept 1H pullbacks in an uptrend (EMA8>EMA40>EMA200, price>EMA40)
 REQUIRE_RETEST = False
 ALLOW_MOMENTUM_ENTRY = False  # was True; momentum entries lost most often
 REQUIRE_4H_BULLISH = True   # hard filter: skip anything the 4H trend rejects
@@ -506,6 +507,9 @@ def trend_report(candles, timeframe):
     if timeframe == "1H":
         # EMA 8 rising and price above it.
         bullish = improving and price > e8
+
+        if ALLOW_PULLBACK_1H and not bullish:
+            bullish = e8 > e40 > e200 and price > e40
 
         reason = (
             "Supportive 1H momentum"
@@ -1331,7 +1335,8 @@ def main():
     print(
         f"Settings: trailing stop {'ON' if USE_TRAILING_STOP else 'OFF'}, "
         f"momentum entries {'ON' if ALLOW_MOMENTUM_ENTRY else 'OFF'}, "
-        f"min confirmations {MIN_CONFIRMATIONS}/3"
+        f"min confirmations {MIN_CONFIRMATIONS}/3, "
+        f"1H pullbacks {'ON' if ALLOW_PULLBACK_1H else 'OFF'}"
     )
     print(
         f"Sizing: risk ${RISK_PER_TRADE:.2f}/trade, "
