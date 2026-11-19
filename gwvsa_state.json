@@ -1,9 +1,54 @@
 {
   "version": "V8.2",
-  "cash": 2000.0,
-  "positions": {},
-  "last_signal": {},
-  "last_processed_5m": {},
+  "cash": 0.0,
+  "positions": {
+    "LUNA/USD": {
+      "quantity": 17246275.36177596,
+      "entry": 6.95802412305e-05,
+      "stop": 6.798304184464285e-05,
+      "target": 7.277464000221428e-05,
+      "risk": 1.597199385857141e-06,
+      "atr": 1.1180334214285715e-06,
+      "tier": "MEDIUM",
+      "score": 6,
+      "r_multiple": 2.0,
+      "target_profit": 51.38,
+      "net_at_stop": 31.089476481059748,
+      "setup": "SWEEP",
+      "rsi": 47.06994328922492,
+      "confirmations": 2,
+      "entry_cost": 1201.2,
+      "entry_time": 1795128944,
+      "signal_time": 1795127400
+    },
+    "ICNT/USD": {
+      "quantity": 1295.2527941617486,
+      "entry": 0.61609749201,
+      "stop": 0.5827403346428572,
+      "target": 0.6828118067442854,
+      "risk": 0.03335715736714273,
+      "atr": 0.014469873428571423,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 83.85,
+      "net_at_stop": 45.51279058047393,
+      "setup": "SWEEP",
+      "rsi": 42.98375184638112,
+      "confirmations": 3,
+      "entry_cost": 798.8,
+      "entry_time": 1795128952,
+      "signal_time": 1795127400
+    }
+  },
+  "last_signal": {
+    "LUNA/USD": 1795127400,
+    "ICNT/USD": 1795127400
+  },
+  "last_processed_5m": {
+    "LUNA/USD": 1795128600,
+    "ICNT/USD": 1795128600
+  },
   "total_trades": 0,
   "winning_trades": 0,
   "losing_trades": 0,
