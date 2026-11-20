@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 1785.046581771907,
+  "cash": 583.846581771907,
   "positions": {
     "GENIUS/USD": {
       "quantity": 578.734321509101,
@@ -20,13 +20,34 @@
       "entry_cost": 214.9534182280929,
       "entry_time": 1795214172,
       "signal_time": 1795212900
+    },
+    "EVAA/USD": {
+      "quantity": 153.71856322006244,
+      "entry": 7.806474214061501,
+      "stop": 7.480396008642858,
+      "target": 8.621669727608108,
+      "risk": 0.32607820541864285,
+      "atr": 0.13996350671428567,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 120.8,
+      "net_at_stop": 54.197237737653964,
+      "setup": "BREAKOUT",
+      "rsi": 76.87809266756635,
+      "confirmations": 3,
+      "entry_cost": 1201.2,
+      "entry_time": 1795216594,
+      "signal_time": 1795215600
     }
   },
   "last_signal": {
-    "GENIUS/USD": 1795212900
+    "GENIUS/USD": 1795212900,
+    "EVAA/USD": 1795215600
   },
   "last_processed_5m": {
-    "GENIUS/USD": 1795213800
+    "GENIUS/USD": 1795215900,
+    "EVAA/USD": 1795216200
   },
   "last_exit": {},
   "total_trades": 0,
