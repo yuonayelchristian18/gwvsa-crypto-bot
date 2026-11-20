@@ -1374,7 +1374,20 @@ def main():
         + [m for m in markets if m not in state["positions"]]
     )
 
-    for market in ordered:
+    for index, market in enumerate(ordered):
+        # Slots are full and this market isn't held. Held markets are
+        # sorted first, so everything left is also a skip: stop here
+        # and log it once instead of once per market.
+        if (
+            market not in state["positions"]
+            and len(state["positions"]) >= MAX_OPEN_POSITIONS
+        ):
+            print(
+                f"\nMax open positions ({MAX_OPEN_POSITIONS}) reached; "
+                f"skipping {len(ordered) - index} remaining markets"
+            )
+            break
+
         pair = pairs[market]
         fx = fx_for(market)
         print(f"\n######## CHECKING {market} ########")
@@ -1393,10 +1406,6 @@ def main():
                 if market in state["positions"]:
                     print(f"{market}: existing position remains open")
                     continue
-
-            if len(state["positions"]) >= MAX_OPEN_POSITIONS:
-                print(f"{market}: max open positions reached")
-                continue
 
             four_h = False
 
