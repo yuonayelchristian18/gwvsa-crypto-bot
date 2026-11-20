@@ -1,6 +1,6 @@
 {
   "version": "V8.2",
-  "cash": 602.6575836623838,
+  "cash": 573.1702616055854,
   "positions": {
     "CASH/USD": {
       "quantity": 30.1991182634142,
@@ -21,24 +21,24 @@
       "entry_time": 1795180040,
       "signal_time": 1795178700
     },
-    "CAP/USD": {
-      "quantity": 8687.41635333924,
-      "entry": 0.138130826380705,
-      "stop": 0.1352125289076786,
-      "target": 0.14396742132675783,
-      "risk": 0.00291829747302641,
-      "atr": 0.0013665344492857123,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 46.38,
-      "net_at_stop": 29.48732205679821,
-      "setup": "SWEEP",
-      "rsi": 50.7927438937295,
+    "BLESS/USD": {
+      "quantity": 65197.03935260638,
+      "entry": 0.0184057437564,
+      "stop": 0.01809493153928572,
+      "target": 0.019182774299185704,
+      "risk": 0.000310812217114282,
+      "atr": 0.00033590792142857144,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 46.96,
+      "net_at_stop": 23.82232854180614,
+      "setup": "BREAKOUT",
+      "rsi": 54.62786259541984,
       "confirmations": 3,
       "entry_cost": 1201.2,
-      "entry_time": 1795195724,
-      "signal_time": 1795194000
+      "entry_time": 1795203103,
+      "signal_time": 1795202100
     }
   },
   "last_signal": {
@@ -47,19 +47,19 @@
     "CTR/USD": 1795139100,
     "ESPORTS/USD": 1795157100,
     "DOS/USD": 1795166100,
-    "BLESS/USD": 1795190400,
+    "BLESS/USD": 1795202100,
     "REKT/USD": 1795174200,
     "CASH/USD": 1795178700,
     "CAP/USD": 1795194000
   },
   "last_processed_5m": {
-    "CASH/USD": 1795198500,
-    "CAP/USD": 1795198500
+    "CASH/USD": 1795202700,
+    "BLESS/USD": 1795202700
   },
-  "total_trades": 9,
+  "total_trades": 10,
   "winning_trades": 3,
-  "losing_trades": 6,
-  "realized_pnl": -152.75698715799746,
+  "losing_trades": 7,
+  "realized_pnl": -182.2443092147958,
   "gross_profit": 70.79830984957044,
-  "gross_loss": 223.5552970075679
+  "gross_loss": 253.04261906436625
 }
