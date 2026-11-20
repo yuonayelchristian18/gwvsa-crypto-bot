@@ -1,26 +1,7 @@
 {
   "version": "V8.2",
-  "cash": 1107.9967476694064,
+  "cash": 730.7425267757335,
   "positions": {
-    "REKT/USD": {
-      "quantity": 6548216542.338978,
-      "entry": 1.0983707184450003e-07,
-      "stop": 1.0748423861059502e-07,
-      "target": 1.1571915492926254e-07,
-      "risk": 2.3528332339050094e-09,
-      "atr": 4.800345000000029e-10,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 35.9,
-      "net_at_stop": 17.884617862608373,
-      "setup": "BREAKOUT",
-      "rsi": 41.176470588235254,
-      "confirmations": 3,
-      "entry_cost": 719.956167745044,
-      "entry_time": 1795175540,
-      "signal_time": 1795174200
-    },
     "CASH/USD": {
       "quantity": 30.1991182634142,
       "entry": 1.4352103499999997,
@@ -39,6 +20,25 @@
       "entry_cost": 43.385429179618605,
       "entry_time": 1795180040,
       "signal_time": 1795178700
+    },
+    "BLESS/USD": {
+      "quantity": 61239.81844820368,
+      "entry": 0.018484428963,
+      "stop": 0.017558257648214285,
+      "target": 0.02033677159257143,
+      "risk": 0.0009261713147857148,
+      "atr": 0.00040142508714285707,
+      "tier": "MEDIUM",
+      "score": 6,
+      "r_multiple": 2.0,
+      "target_profit": 109.82,
+      "net_at_stop": 60.0,
+      "setup": "SWEEP",
+      "rsi": 52.60340632603404,
+      "confirmations": 2,
+      "entry_cost": 1133.1150568866506,
+      "entry_time": 1795191899,
+      "signal_time": 1795190400
     }
   },
   "last_signal": {
@@ -47,18 +47,18 @@
     "CTR/USD": 1795139100,
     "ESPORTS/USD": 1795157100,
     "DOS/USD": 1795166100,
-    "BLESS/USD": 1795174200,
+    "BLESS/USD": 1795190400,
     "REKT/USD": 1795174200,
     "CASH/USD": 1795178700
   },
   "last_processed_5m": {
-    "REKT/USD": 1795187700,
-    "CASH/USD": 1795187700
+    "CASH/USD": 1795191300,
+    "BLESS/USD": 1795191300
   },
-  "total_trades": 7,
-  "winning_trades": 2,
+  "total_trades": 8,
+  "winning_trades": 3,
   "losing_trades": 5,
-  "realized_pnl": -128.66165540593096,
-  "gross_profit": 34.893641601636716,
+  "realized_pnl": -92.75698715799723,
+  "gross_profit": 70.79830984957044,
   "gross_loss": 163.55529700756767
 }
