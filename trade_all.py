@@ -8,10 +8,22 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V8.2
+# GWVSA PAPER TRADING BOT V8.3
 # Kraken public data ONLY. NO REAL ORDERS.
 #
-# What changed from V8.1:
+# What changed from V8.2:
+#  - Fixed a replay bug: after entry, the bot used to replay the
+#    5m candle that was still forming when it bought, which holds
+#    price action from BEFORE the entry. That could stop a trade
+#    out at a price it never traded at (STOP_LOSS_GAP seconds after
+#    entry). Now only candles that opened at/after entry_time are
+#    replayed.
+#  - Cooldown: after a stop-out, a market is skipped for
+#    COOLDOWN_SECONDS (default 4 hours) so the bot can't re-buy the
+#    same coin straight away.
+#  - Version bump archives V8.2 records so V8.3 stats start clean.
+#
+# V8.2 (vs V8.1):
 #  - Scans ALL Kraken markets: crypto, tokenized stocks (xStocks,
 #    e.g. AAPLx/USD) and forex (EUR/USD, GBP/USD, AUD/USD).
 #    Each asset class can be switched on/off, and has its own
@@ -36,7 +48,7 @@ from datetime import datetime, timezone
 #    factor, expectancy and break-even win rate.
 # ============================================================
 
-BOT_VERSION = "V8.2"
+BOT_VERSION = "V8.3"
 
 API = "https://api.kraken.com/0/public"
 
@@ -75,6 +87,9 @@ COST_STOP_MULT = 3.0        # stop must be >= 3x round-trip cost (fees+slippage)
 
 # Execution realism
 MAX_ENTRY_DRIFT = 0.01
+
+# Cooldown after a stop-out: don't re-enter the same market for this long.
+COOLDOWN_SECONDS = 4 * 3600
 
 # Slippage by 24h CAD volume: (minimum volume, slippage).
 SLIPPAGE_TIERS = [
@@ -182,7 +197,7 @@ def api_get(endpoint, params=None):
 
         request = urllib.request.Request(
             url,
-            headers={"User-Agent": "GWVSA-PaperTrader/8.1"}
+            headers={"User-Agent": "GWVSA-PaperTrader/8.3"}
         )
 
         try:
@@ -619,6 +634,7 @@ def load_state():
         "positions": {},
         "last_signal": {},
         "last_processed_5m": {},
+        "last_exit": {},
         "total_trades": 0,
         "winning_trades": 0,
         "losing_trades": 0,
@@ -1072,6 +1088,10 @@ def close_position(state, market, exit_reference, reason, exit_time=None):
     state["realized_pnl"] += net_pnl
     state["total_trades"] += 1
 
+    # Start the cooldown clock after a stop-out.
+    if reason.startswith(("STOP_LOSS", "TRAILING_STOP")):
+        state["last_exit"][market] = time.time()
+
     if net_pnl >= 0:
         state["winning_trades"] += 1
         state["gross_profit"] += net_pnl
@@ -1182,8 +1202,14 @@ def manage_position(state, market, pair, candles5):
         close_position(state, market, current_price, reason)
         return
 
+    # Only replay candles that opened at or after entry. The candle that
+    # was still forming when we bought includes price action from before
+    # the entry, so it must not be allowed to trigger the stop.
+    entry_time = position.get("entry_time", 0)
+
     new_candles = [
-        c for c in candles5 if c["time"] > last_time
+        c for c in candles5
+        if c["time"] > last_time and c["time"] >= entry_time
     ]
 
     if not new_candles:
@@ -1336,7 +1362,8 @@ def main():
         f"Settings: trailing stop {'ON' if USE_TRAILING_STOP else 'OFF'}, "
         f"momentum entries {'ON' if ALLOW_MOMENTUM_ENTRY else 'OFF'}, "
         f"min confirmations {MIN_CONFIRMATIONS}/3, "
-        f"1H pullbacks {'ON' if ALLOW_PULLBACK_1H else 'OFF'}"
+        f"1H pullbacks {'ON' if ALLOW_PULLBACK_1H else 'OFF'}, "
+        f"cooldown {COOLDOWN_SECONDS / 3600:.0f}h"
     )
     print(
         f"Sizing: risk ${RISK_PER_TRADE:.2f}/trade, "
@@ -1406,6 +1433,15 @@ def main():
                 if market in state["positions"]:
                     print(f"{market}: existing position remains open")
                     continue
+
+            # Cooldown after a stop-out: don't chase the same market.
+            if (
+                not forced
+                and time.time() - state["last_exit"].get(market, 0)
+                < COOLDOWN_SECONDS
+            ):
+                print(f"{market}: cooling down after stop-out")
+                continue
 
             four_h = False
 
