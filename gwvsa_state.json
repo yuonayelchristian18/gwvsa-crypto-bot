@@ -1,25 +1,44 @@
 {
   "version": "V8.2",
-  "cash": 698.4713065589787,
+  "cash": 0.0,
   "positions": {
-    "ICNT/USD": {
-      "quantity": 1971.1960057695915,
-      "entry": 0.608767467308,
-      "stop": 0.6023921743928572,
-      "target": 0.6215180531382857,
-      "risk": 0.006375292915142827,
-      "atr": 0.02364065042857144,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 21.48,
-      "net_at_stop": 16.140630593032714,
-      "setup": "SWEEP",
-      "rsi": 43.61088211046991,
+    "BLESS/USD": {
+      "quantity": 63670.57535878777,
+      "entry": 0.018847010463435003,
+      "stop": 0.018119647788,
+      "target": 0.020665417152022508,
+      "risk": 0.0007273626754350018,
+      "atr": 0.0006430419599999999,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 111.29,
+      "net_at_stop": 50.39409050675497,
+      "setup": "BREAKOUT",
+      "rsi": 43.69829683698297,
       "confirmations": 3,
       "entry_cost": 1201.2,
-      "entry_time": 1795170664,
-      "signal_time": 1795169700
+      "entry_time": 1795175511,
+      "signal_time": 1795174200
+    },
+    "REKT/USD": {
+      "quantity": 6548216542.338978,
+      "entry": 1.0983707184450003e-07,
+      "stop": 1.0748423861059502e-07,
+      "target": 1.1571915492926254e-07,
+      "risk": 2.3528332339050094e-09,
+      "atr": 4.800345000000029e-10,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 35.9,
+      "net_at_stop": 17.884617862608373,
+      "setup": "BREAKOUT",
+      "rsi": 41.176470588235254,
+      "confirmations": 3,
+      "entry_cost": 719.956167745044,
+      "entry_time": 1795175540,
+      "signal_time": 1795174200
     }
   },
   "last_signal": {
@@ -27,15 +46,18 @@
     "ICNT/USD": 1795169700,
     "CTR/USD": 1795139100,
     "ESPORTS/USD": 1795157100,
-    "DOS/USD": 1795166100
+    "DOS/USD": 1795166100,
+    "BLESS/USD": 1795174200,
+    "REKT/USD": 1795174200
   },
   "last_processed_5m": {
-    "ICNT/USD": 1795170300
+    "BLESS/USD": 1795175100,
+    "REKT/USD": 1795175100
   },
-  "total_trades": 5,
-  "winning_trades": 1,
+  "total_trades": 6,
+  "winning_trades": 2,
   "losing_trades": 4,
-  "realized_pnl": -100.32869344102136,
-  "gross_profit": 13.408780415571243,
+  "realized_pnl": -78.84383225495588,
+  "gross_profit": 34.893641601636716,
   "gross_loss": 113.7374738565926
 }
