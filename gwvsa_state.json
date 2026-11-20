@@ -1,6 +1,6 @@
 {
   "version": "V8.2",
-  "cash": 730.7425267757335,
+  "cash": 602.6575836623836,
   "positions": {
     "CASH/USD": {
       "quantity": 30.1991182634142,
@@ -21,24 +21,24 @@
       "entry_time": 1795180040,
       "signal_time": 1795178700
     },
-    "BLESS/USD": {
-      "quantity": 61239.81844820368,
-      "entry": 0.018484428963,
-      "stop": 0.017558257648214285,
-      "target": 0.02033677159257143,
-      "risk": 0.0009261713147857148,
-      "atr": 0.00040142508714285707,
+    "CAP/USD": {
+      "quantity": 8686.619859284077,
+      "entry": 0.1381434918805,
+      "stop": 0.1351870329667857,
+      "target": 0.14405640970792866,
+      "risk": 0.0029564589137143216,
+      "atr": 0.001366276772857143,
       "tier": "MEDIUM",
-      "score": 6,
+      "score": 7,
       "r_multiple": 2.0,
-      "target_profit": 109.82,
-      "net_at_stop": 60.0,
+      "target_profit": 47.04,
+      "net_at_stop": 29.81566914869759,
       "setup": "SWEEP",
-      "rsi": 52.60340632603404,
-      "confirmations": 2,
-      "entry_cost": 1133.1150568866506,
-      "entry_time": 1795191899,
-      "signal_time": 1795190400
+      "rsi": 50.79274389372946,
+      "confirmations": 3,
+      "entry_cost": 1201.2000000000003,
+      "entry_time": 1795195570,
+      "signal_time": 1795194000
     }
   },
   "last_signal": {
@@ -49,16 +49,17 @@
     "DOS/USD": 1795166100,
     "BLESS/USD": 1795190400,
     "REKT/USD": 1795174200,
-    "CASH/USD": 1795178700
+    "CASH/USD": 1795178700,
+    "CAP/USD": 1795194000
   },
   "last_processed_5m": {
-    "CASH/USD": 1795191300,
-    "BLESS/USD": 1795191300
+    "CASH/USD": 1795194900,
+    "CAP/USD": 1795195200
   },
-  "total_trades": 8,
+  "total_trades": 9,
   "winning_trades": 3,
-  "losing_trades": 5,
-  "realized_pnl": -92.75698715799723,
+  "losing_trades": 6,
+  "realized_pnl": -152.75698715799746,
   "gross_profit": 70.79830984957044,
-  "gross_loss": 163.55529700756767
+  "gross_loss": 223.5552970075679
 }
