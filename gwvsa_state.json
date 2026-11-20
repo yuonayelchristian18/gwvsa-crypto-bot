@@ -1,6 +1,6 @@
 {
   "version": "V8.2",
-  "cash": 573.1702616055854,
+  "cash": 523.503803988779,
   "positions": {
     "CASH/USD": {
       "quantity": 30.1991182634142,
@@ -22,23 +22,23 @@
       "signal_time": 1795178700
     },
     "BLESS/USD": {
-      "quantity": 65197.03935260638,
-      "entry": 0.0184057437564,
-      "stop": 0.01809493153928572,
-      "target": 0.019182774299185704,
-      "risk": 0.000310812217114282,
-      "atr": 0.00033590792142857144,
+      "quantity": 66687.06294869774,
+      "entry": 0.01799449468817,
+      "stop": 0.01775648528642857,
+      "target": 0.018589518192523573,
+      "risk": 0.00023800940174142915,
+      "atr": 0.00027917724714285677,
       "tier": "STRONG",
       "score": 8,
       "r_multiple": 2.5,
-      "target_profit": 46.96,
-      "net_at_stop": 23.82232854180614,
+      "target_profit": 36.0,
+      "net_at_stop": 19.439219532547845,
       "setup": "BREAKOUT",
-      "rsi": 54.62786259541984,
+      "rsi": 65.33409480296967,
       "confirmations": 3,
       "entry_cost": 1201.2,
-      "entry_time": 1795203103,
-      "signal_time": 1795202100
+      "entry_time": 1795206159,
+      "signal_time": 1795204800
     }
   },
   "last_signal": {
@@ -47,19 +47,19 @@
     "CTR/USD": 1795139100,
     "ESPORTS/USD": 1795157100,
     "DOS/USD": 1795166100,
-    "BLESS/USD": 1795202100,
+    "BLESS/USD": 1795204800,
     "REKT/USD": 1795174200,
     "CASH/USD": 1795178700,
     "CAP/USD": 1795194000
   },
   "last_processed_5m": {
-    "CASH/USD": 1795202700,
-    "BLESS/USD": 1795202700
+    "CASH/USD": 1795205700,
+    "BLESS/USD": 1795205700
   },
-  "total_trades": 10,
+  "total_trades": 11,
   "winning_trades": 3,
-  "losing_trades": 7,
-  "realized_pnl": -182.2443092147958,
+  "losing_trades": 8,
+  "realized_pnl": -231.9107668316022,
   "gross_profit": 70.79830984957044,
-  "gross_loss": 253.04261906436625
+  "gross_loss": 302.70907668117263
 }
