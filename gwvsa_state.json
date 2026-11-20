@@ -1,61 +1,41 @@
 {
   "version": "V8.2",
-  "cash": 683.8147949013396,
+  "cash": 698.4713065589787,
   "positions": {
     "ICNT/USD": {
-      "quantity": 1295.2527941617486,
-      "entry": 0.61609749201,
-      "stop": 0.5827403346428572,
-      "target": 0.6828118067442854,
-      "risk": 0.03335715736714273,
-      "atr": 0.014469873428571423,
+      "quantity": 1971.1960057695915,
+      "entry": 0.608767467308,
+      "stop": 0.6023921743928572,
+      "target": 0.6215180531382857,
+      "risk": 0.006375292915142827,
+      "atr": 0.02364065042857144,
       "tier": "MEDIUM",
       "score": 7,
       "r_multiple": 2.0,
-      "target_profit": 83.85,
-      "net_at_stop": 45.51279058047393,
+      "target_profit": 21.48,
+      "net_at_stop": 16.140630593032714,
       "setup": "SWEEP",
-      "rsi": 42.98375184638112,
+      "rsi": 43.61088211046991,
       "confirmations": 3,
-      "entry_cost": 798.8,
-      "entry_time": 1795128952,
-      "signal_time": 1795127400
-    },
-    "DOS/USD": {
-      "quantity": 1672.1002337148084,
-      "entry": 0.28515684580199996,
-      "stop": 0.27733261267008,
-      "target": 0.3047174286317998,
-      "risk": 0.007824233131919933,
-      "atr": 0.002728778142857138,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 30.19,
-      "net_at_stop": 15.413233399103525,
-      "setup": "BREAKOUT",
-      "rsi": 72.15909090909096,
-      "confirmations": 3,
-      "entry_cost": 477.28763933941264,
-      "entry_time": 1795167294,
-      "signal_time": 1795166100
+      "entry_cost": 1201.2,
+      "entry_time": 1795170664,
+      "signal_time": 1795169700
     }
   },
   "last_signal": {
     "LUNA/USD": 1795127400,
-    "ICNT/USD": 1795127400,
+    "ICNT/USD": 1795169700,
     "CTR/USD": 1795139100,
     "ESPORTS/USD": 1795157100,
     "DOS/USD": 1795166100
   },
   "last_processed_5m": {
-    "ICNT/USD": 1795166400,
-    "DOS/USD": 1795166700
+    "ICNT/USD": 1795170300
   },
-  "total_trades": 3,
+  "total_trades": 5,
   "winning_trades": 1,
-  "losing_trades": 2,
-  "realized_pnl": -40.09756575924786,
+  "losing_trades": 4,
+  "realized_pnl": -100.32869344102136,
   "gross_profit": 13.408780415571243,
-  "gross_loss": 53.5063461748191
+  "gross_loss": 113.7374738565926
 }
