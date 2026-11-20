@@ -1,23 +1,38 @@
 {
-  "version": "V8.2",
-  "cash": 1685.3785493705973,
-  "positions": {},
-  "last_signal": {
-    "LUNA/USD": 1795127400,
-    "ICNT/USD": 1795169700,
-    "CTR/USD": 1795139100,
-    "ESPORTS/USD": 1795157100,
-    "DOS/USD": 1795166100,
-    "BLESS/USD": 1795204800,
-    "REKT/USD": 1795174200,
-    "CASH/USD": 1795178700,
-    "CAP/USD": 1795194000
+  "version": "V8.3",
+  "cash": 1776.9528252934351,
+  "positions": {
+    "GENIUS/USD": {
+      "quantity": 597.0399733101841,
+      "entry": 0.37321512849599997,
+      "stop": 0.36303109452825594,
+      "target": 0.39867521341536005,
+      "risk": 0.010184033967744033,
+      "atr": 0.0014591759999999826,
+      "tier": "STRONG",
+      "score": 9,
+      "r_multiple": 2.5,
+      "target_profit": 14.03,
+      "net_at_stop": 7.169425786374796,
+      "setup": "BREAKOUT",
+      "rsi": 65.35433070866162,
+      "confirmations": 3,
+      "entry_cost": 223.04717470656496,
+      "entry_time": 1795213190,
+      "signal_time": 1795212000
+    }
   },
-  "last_processed_5m": {},
-  "total_trades": 13,
-  "winning_trades": 3,
-  "losing_trades": 10,
-  "realized_pnl": -314.62145062940255,
-  "gross_profit": 70.79830984957044,
-  "gross_loss": 385.419760478973
+  "last_signal": {
+    "GENIUS/USD": 1795212000
+  },
+  "last_processed_5m": {
+    "GENIUS/USD": 1795212600
+  },
+  "last_exit": {},
+  "total_trades": 0,
+  "winning_trades": 0,
+  "losing_trades": 0,
+  "realized_pnl": 0.0,
+  "gross_profit": 0.0,
+  "gross_loss": 0.0
 }
