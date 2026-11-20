@@ -1,6 +1,6 @@
 {
   "version": "V8.2",
-  "cash": 819.0912402135921,
+  "cash": 819.1312825873038,
   "positions": {
     "ICNT/USD": {
       "quantity": 1295.2527941617486,
@@ -22,22 +22,22 @@
       "signal_time": 1795127400
     },
     "ESPORTS/USD": {
-      "quantity": 23084.291110193295,
-      "entry": 0.014220672313699998,
-      "stop": 0.013907387028177598,
-      "target": 0.0148472428847448,
-      "risk": 0.0003132852855224008,
-      "atr": 2.861379999999953e-05,
+      "quantity": 23056.11551818905,
+      "entry": 0.014236315603199998,
+      "stop": 0.013908650726332798,
+      "target": 0.014891645356934399,
+      "risk": 0.00032766487686720046,
+      "atr": 2.861639999999992e-05,
       "tier": "MEDIUM",
       "score": 7,
       "r_multiple": 2.0,
-      "target_profit": 12.77,
-      "net_at_stop": 8.843448427461292,
+      "target_profit": 13.41,
+      "net_at_stop": 9.164669182424472,
       "setup": "BREAKOUT",
-      "rsi": 40.74074074074068,
+      "rsi": 40.740740740740755,
       "confirmations": 3,
-      "entry_cost": 328.60241361158893,
-      "entry_time": 1795158278,
+      "entry_cost": 328.56237123787713,
+      "entry_time": 1795158670,
       "signal_time": 1795157100
     }
   },
@@ -48,8 +48,8 @@
     "ESPORTS/USD": 1795157100
   },
   "last_processed_5m": {
-    "ICNT/USD": 1795157400,
-    "ESPORTS/USD": 1795157700
+    "ICNT/USD": 1795158000,
+    "ESPORTS/USD": 1795158300
   },
   "total_trades": 2,
   "winning_trades": 0,
