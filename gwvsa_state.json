@@ -1,46 +1,7 @@
 {
   "version": "V8.2",
-  "cash": 523.503803988779,
-  "positions": {
-    "CASH/USD": {
-      "quantity": 30.1991182634142,
-      "entry": 1.4352103499999997,
-      "stop": 1.3838194859554798,
-      "target": 1.5636875101112997,
-      "risk": 0.05139086404451998,
-      "atr": 9.180449999999864e-05,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 3.55,
-      "net_at_stop": 1.84583268725999,
-      "setup": "BREAKOUT",
-      "rsi": 77.77777777777393,
-      "confirmations": 3,
-      "entry_cost": 43.385429179618605,
-      "entry_time": 1795180040,
-      "signal_time": 1795178700
-    },
-    "BLESS/USD": {
-      "quantity": 66687.06294869774,
-      "entry": 0.01799449468817,
-      "stop": 0.01775648528642857,
-      "target": 0.018589518192523573,
-      "risk": 0.00023800940174142915,
-      "atr": 0.00027917724714285677,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 36.0,
-      "net_at_stop": 19.439219532547845,
-      "setup": "BREAKOUT",
-      "rsi": 65.33409480296967,
-      "confirmations": 3,
-      "entry_cost": 1201.2,
-      "entry_time": 1795206159,
-      "signal_time": 1795204800
-    }
-  },
+  "cash": 1685.3785493705973,
+  "positions": {},
   "last_signal": {
     "LUNA/USD": 1795127400,
     "ICNT/USD": 1795169700,
@@ -52,14 +13,11 @@
     "CASH/USD": 1795178700,
     "CAP/USD": 1795194000
   },
-  "last_processed_5m": {
-    "CASH/USD": 1795205700,
-    "BLESS/USD": 1795205700
-  },
-  "total_trades": 11,
+  "last_processed_5m": {},
+  "total_trades": 13,
   "winning_trades": 3,
-  "losing_trades": 8,
-  "realized_pnl": -231.9107668316022,
+  "losing_trades": 10,
+  "realized_pnl": -314.62145062940255,
   "gross_profit": 70.79830984957044,
-  "gross_loss": 302.70907668117263
+  "gross_loss": 385.419760478973
 }
