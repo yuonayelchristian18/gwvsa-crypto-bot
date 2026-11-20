@@ -1,2 +1,2 @@
 time_utc,market,side,quantity,entry_price,exit_price,stop_loss,take_profit,net_pnl_cad,result,setup,score,tier,r_multiple,rsi,confirmations,hold_minutes,pnl_r
-2026-11-20T22:19:50.890457+00:00,GENIUS/USD,BUY,597.03997331,0.37321513,,0.36303109,0.39867521,,OPEN_BREAKOUT_STRONG_score9_2.5R,BREAKOUT,9,STRONG,2.5,65.35,3,,
+2026-11-20T22:36:12.838260+00:00,GENIUS/USD,BUY,578.73432151,0.37104881,,0.36238816,0.39270042,,OPEN_BREAKOUT_STRONG_score8_2.5R,BREAKOUT,8,STRONG,2.5,64.23,2,,

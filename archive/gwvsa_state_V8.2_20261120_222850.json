@@ -1,0 +1,23 @@
+{
+  "version": "V8.2",
+  "cash": 1685.3785493705973,
+  "positions": {},
+  "last_signal": {
+    "LUNA/USD": 1795127400,
+    "ICNT/USD": 1795169700,
+    "CTR/USD": 1795139100,
+    "ESPORTS/USD": 1795157100,
+    "DOS/USD": 1795166100,
+    "BLESS/USD": 1795204800,
+    "REKT/USD": 1795174200,
+    "CASH/USD": 1795178700,
+    "CAP/USD": 1795194000
+  },
+  "last_processed_5m": {},
+  "total_trades": 13,
+  "winning_trades": 3,
+  "losing_trades": 10,
+  "realized_pnl": -314.62145062940255,
+  "gross_profit": 70.79830984957044,
+  "gross_loss": 385.419760478973
+}

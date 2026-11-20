@@ -1,32 +1,32 @@
 {
   "version": "V8.3",
-  "cash": 1776.9528252934351,
+  "cash": 1785.046581771907,
   "positions": {
     "GENIUS/USD": {
-      "quantity": 597.0399733101841,
-      "entry": 0.37321512849599997,
-      "stop": 0.36303109452825594,
-      "target": 0.39867521341536005,
-      "risk": 0.010184033967744033,
-      "atr": 0.0014591759999999826,
+      "quantity": 578.734321509101,
+      "entry": 0.37104880697,
+      "stop": 0.36238816202783997,
+      "target": 0.3927004193254,
+      "risk": 0.008660644942160012,
+      "atr": 0.001400608214285706,
       "tier": "STRONG",
-      "score": 9,
+      "score": 8,
       "r_multiple": 2.5,
-      "target_profit": 14.03,
-      "net_at_stop": 7.169425786374796,
+      "target_profit": 11.41,
+      "net_at_stop": 6.065227842875982,
       "setup": "BREAKOUT",
-      "rsi": 65.35433070866162,
-      "confirmations": 3,
-      "entry_cost": 223.04717470656496,
-      "entry_time": 1795213190,
-      "signal_time": 1795212000
+      "rsi": 64.22764227642284,
+      "confirmations": 2,
+      "entry_cost": 214.9534182280929,
+      "entry_time": 1795214172,
+      "signal_time": 1795212900
     }
   },
   "last_signal": {
-    "GENIUS/USD": 1795212000
+    "GENIUS/USD": 1795212900
   },
   "last_processed_5m": {
-    "GENIUS/USD": 1795212600
+    "GENIUS/USD": 1795213800
   },
   "last_exit": {},
   "total_trades": 0,
