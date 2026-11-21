@@ -1,44 +1,44 @@
 {
   "version": "V8.3",
-  "cash": 450.6443953999136,
+  "cash": 713.20911586253,
   "positions": {
-    "USUAL/USD": {
-      "quantity": 16579.01461408824,
-      "entry": 0.0076340335999999995,
-      "stop": 0.007346344642857143,
-      "target": 0.00835325599285714,
-      "risk": 0.00028768895714285665,
-      "atr": 6.542142857142844e-05,
-      "tier": "STRONG",
-      "score": 9,
-      "r_multiple": 2.5,
-      "target_profit": 11.24,
-      "net_at_stop": 5.382979414712692,
-      "setup": "SWEEP",
-      "rsi": 50.0,
+    "CTR/USD": {
+      "quantity": 35076.63953357592,
+      "entry": 0.014237394028799998,
+      "stop": 0.013870614087321596,
+      "target": 0.0149709539117568,
+      "risk": 0.00036677994147840155,
+      "atr": 7.930742857142828e-05,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 23.13,
+      "net_at_stop": 15.30948625183955,
+      "setup": "BREAKOUT",
+      "rsi": 73.8317757009346,
       "confirmations": 2,
-      "entry_cost": 126.69131937345948,
-      "entry_time": 1795244507,
-      "signal_time": 1795243500
+      "entry_cost": 499.89933818394945,
+      "entry_time": 1795252663,
+      "signal_time": 1795251600
     },
-    "SOFID/USD": {
-      "quantity": 994.3702567915208,
-      "entry": 0.7119570176224,
-      "stop": 0.7014249616,
-      "target": 0.7382871576784001,
-      "risk": 0.010532056022400038,
-      "atr": 3.148891428574251e-05,
+    "ESPORTS/USD": {
+      "quantity": 25963.011746083583,
+      "entry": 0.008960477830399998,
+      "stop": 0.008854117129881598,
+      "target": 0.009226379581695998,
+      "risk": 0.00010636070051840002,
+      "atr": 8.479794285714335e-05,
       "tier": "STRONG",
       "score": 8,
       "r_multiple": 2.5,
-      "target_profit": 23.64,
-      "net_at_stop": 12.923356217760794,
+      "target_profit": 5.71,
+      "net_at_stop": 3.9129136575782155,
       "setup": "BREAKOUT",
-      "rsi": 73.68421052630137,
+      "rsi": 72.2222222222221,
       "confirmations": 3,
-      "entry_cost": 708.6568313201489,
-      "entry_time": 1795248483,
-      "signal_time": 1795247100
+      "entry_cost": 232.87363215235789,
+      "entry_time": 1795252767,
+      "signal_time": 1795251600
     }
   },
   "last_signal": {
@@ -50,11 +50,13 @@
     "RARE/USD": 1795239000,
     "GFI/USD": 1795239000,
     "USUAL/USD": 1795243500,
-    "SOFID/USD": 1795247100
+    "SOFID/USD": 1795247100,
+    "CTR/USD": 1795251600,
+    "ESPORTS/USD": 1795251600
   },
   "last_processed_5m": {
-    "USUAL/USD": 1795247700,
-    "SOFID/USD": 1795248000
+    "CTR/USD": 1795252200,
+    "ESPORTS/USD": 1795252200
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -65,10 +67,10 @@
     "RARE/USD": 1795244085.7824225,
     "GFI/USD": 1795244087.0580542
   },
-  "total_trades": 7,
-  "winning_trades": 0,
+  "total_trades": 9,
+  "winning_trades": 2,
   "losing_trades": 7,
-  "realized_pnl": -714.0074539064783,
-  "gross_profit": 0.0,
+  "realized_pnl": -554.0179138011629,
+  "gross_profit": 159.98954010531543,
   "gross_loss": 714.0074539064783
 }
