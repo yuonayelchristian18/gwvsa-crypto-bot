@@ -1,43 +1,66 @@
 {
   "version": "V8.3",
-  "cash": 993.4522797621989,
+  "cash": 372.45319450184616,
   "positions": {
-    "PROS/USD": {
-      "quantity": 1342.879800664326,
-      "entry": 0.6916235935680001,
-      "stop": 0.6784754804571429,
-      "target": 0.724493876345143,
-      "risk": 0.013148113110857174,
-      "atr": 0.0058956377142856875,
+    "BLESS/USD": {
+      "quantity": 74108.6982139007,
+      "entry": 0.016192431238455,
+      "stop": 0.015733377952285715,
+      "target": 0.017110537810793566,
+      "risk": 0.00045905328616928365,
+      "atr": 0.0002793405385714285,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 63.67,
+      "net_at_stop": 38.13304287495857,
+      "setup": "BREAKOUT",
+      "rsi": 69.63937621832358,
+      "confirmations": 2,
+      "entry_cost": 1201.2,
+      "entry_time": 1795225528,
+      "signal_time": 1795224600
+    },
+    "VELVET/USD": {
+      "quantity": 3951.387728026236,
+      "entry": 0.07375833516599999,
+      "stop": 0.07233136924285714,
+      "target": 0.07732574997385709,
+      "risk": 0.0014269659231428422,
+      "atr": 0.00040961378571428543,
       "tier": "STRONG",
       "score": 8,
       "r_multiple": 2.5,
-      "target_profit": 40.78,
-      "net_at_stop": 20.861513745237943,
+      "target_profit": 12.58,
+      "net_at_stop": 7.072323128688698,
       "setup": "BREAKOUT",
-      "rsi": 75.26652452025607,
+      "rsi": 55.263157894736864,
       "confirmations": 3,
-      "entry_cost": 929.6961208188061,
-      "entry_time": 1795218726,
-      "signal_time": 1795217400
+      "entry_cost": 291.73922819499285,
+      "entry_time": 1795225828,
+      "signal_time": 1795224600
     }
   },
   "last_signal": {
     "GENIUS/USD": 1795212900,
     "EVAA/USD": 1795215600,
-    "PROS/USD": 1795217400
+    "PROS/USD": 1795217400,
+    "BLESS/USD": 1795224600,
+    "VELVET/USD": 1795224600
   },
   "last_processed_5m": {
-    "PROS/USD": 1795219500
+    "BLESS/USD": 1795225200,
+    "VELVET/USD": 1795225500
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
-    "GENIUS/USD": 1795218519.9562798
+    "GENIUS/USD": 1795218519.9562798,
+    "PROS/USD": 1795225428.018376
   },
-  "total_trades": 2,
+  "total_trades": 3,
   "winning_trades": 0,
-  "losing_trades": 2,
-  "realized_pnl": -76.851599418995,
+  "losing_trades": 3,
+  "realized_pnl": -134.60757730316098,
   "gross_profit": 0.0,
-  "gross_loss": 76.851599418995
+  "gross_loss": 134.60757730316098
 }
