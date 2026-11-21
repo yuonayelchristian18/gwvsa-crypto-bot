@@ -1,25 +1,44 @@
 {
   "version": "V8.3",
-  "cash": 1680.6727319529073,
+  "cash": 604.5971946683692,
   "positions": {
-    "ONE/USD": {
-      "quantity": 722.6046623071142,
-      "entry": 0.20750101311599997,
-      "stop": 0.20203532695756798,
-      "target": 0.22116522851207993,
-      "risk": 0.005465686158431987,
-      "atr": 0.0022709119285714324,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 9.09,
-      "net_at_stop": 4.683000202134961,
+    "VVV/USD": {
+      "quantity": 35.38384735858223,
+      "entry": 33.913779579679996,
+      "stop": 33.081042266857146,
+      "target": 35.5792542053257,
+      "risk": 0.8327373128228501,
+      "atr": 0.5491865657142847,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 55.21,
+      "net_at_stop": 33.0053485322361,
       "setup": "BREAKOUT",
-      "rsi": 77.57255936675458,
+      "rsi": 65.20125606622892,
+      "confirmations": 2,
+      "entry_cost": 1201.2,
+      "entry_time": 1795281199,
+      "signal_time": 1795279500
+    },
+    "FOLKS/USD": {
+      "quantity": 9.805305967301106,
+      "entry": 3.4693220426699996,
+      "stop": 3.3407102668166395,
+      "target": 3.7908514823034,
+      "risk": 0.12861177585336003,
+      "atr": 0.02554143728571418,
+      "tier": "STRONG",
+      "score": 9,
+      "r_multiple": 2.5,
+      "target_profit": 2.9,
+      "net_at_stop": 1.4914719118215007,
+      "setup": "SWEEP",
+      "rsi": 39.21150772509325,
       "confirmations": 3,
-      "entry_cost": 150.0911407105823,
-      "entry_time": 1795256745,
-      "signal_time": 1795255200
+      "entry_cost": 34.05178189160889,
+      "entry_time": 1795282347,
+      "signal_time": 1795281300
     }
   },
   "last_signal": {
@@ -35,10 +54,13 @@
     "CTR/USD": 1795251600,
     "ESPORTS/USD": 1795251600,
     "ONE/USD": 1795255200,
-    "PIEVERSE/USD": 1795258800
+    "PIEVERSE/USD": 1795258800,
+    "VVV/USD": 1795279500,
+    "FOLKS/USD": 1795281300
   },
   "last_processed_5m": {
-    "ONE/USD": 1795277100
+    "VVV/USD": 1795280700,
+    "FOLKS/USD": 1795281900
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -50,10 +72,10 @@
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977
   },
-  "total_trades": 14,
-  "winning_trades": 5,
+  "total_trades": 15,
+  "winning_trades": 6,
   "losing_trades": 9,
-  "realized_pnl": -169.23612733651063,
-  "gross_profit": 630.1966159364993,
+  "realized_pnl": -160.15102344002207,
+  "gross_profit": 639.2817198329878,
   "gross_loss": 799.4327432730099
 }
