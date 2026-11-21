@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 1159.3012267200625,
+  "cash": 450.6443953999136,
   "positions": {
     "USUAL/USD": {
       "quantity": 16579.01461408824,
@@ -20,6 +20,25 @@
       "entry_cost": 126.69131937345948,
       "entry_time": 1795244507,
       "signal_time": 1795243500
+    },
+    "SOFID/USD": {
+      "quantity": 994.3702567915208,
+      "entry": 0.7119570176224,
+      "stop": 0.7014249616,
+      "target": 0.7382871576784001,
+      "risk": 0.010532056022400038,
+      "atr": 3.148891428574251e-05,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 23.64,
+      "net_at_stop": 12.923356217760794,
+      "setup": "BREAKOUT",
+      "rsi": 73.68421052630137,
+      "confirmations": 3,
+      "entry_cost": 708.6568313201489,
+      "entry_time": 1795248483,
+      "signal_time": 1795247100
     }
   },
   "last_signal": {
@@ -30,10 +49,12 @@
     "VELVET/USD": 1795224600,
     "RARE/USD": 1795239000,
     "GFI/USD": 1795239000,
-    "USUAL/USD": 1795243500
+    "USUAL/USD": 1795243500,
+    "SOFID/USD": 1795247100
   },
   "last_processed_5m": {
-    "USUAL/USD": 1795244100
+    "USUAL/USD": 1795247700,
+    "SOFID/USD": 1795248000
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
