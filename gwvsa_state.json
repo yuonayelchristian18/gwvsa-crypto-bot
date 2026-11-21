@@ -1,15 +1,59 @@
 {
   "version": "V8.3",
-  "cash": 1690.2240526775324,
-  "positions": {},
+  "cash": 607.0408306262798,
+  "positions": {
+    "RARE/USD": {
+      "quantity": 46530.37533060627,
+      "entry": 0.0155246170475,
+      "stop": 0.014286355875,
+      "target": 0.01862026997875,
+      "risk": 0.0012382611724999996,
+      "atr": 0.00031444050000000026,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 141.15,
+      "net_at_stop": 59.99999999999999,
+      "setup": "SWEEP",
+      "rsi": 64.39393939393938,
+      "confirmations": 3,
+      "entry_cost": 723.0886243421877,
+      "entry_time": 1795240297,
+      "signal_time": 1795239000
+    },
+    "GFI/USD": {
+      "quantity": 10319.945968376423,
+      "entry": 0.034858211849999994,
+      "stop": 0.032842876785714285,
+      "target": 0.03888888197857141,
+      "risk": 0.0020153350642857087,
+      "atr": 0.001024492857142858,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 39.63,
+      "net_at_stop": 22.51261387980596,
+      "setup": "SWEEP",
+      "rsi": 34.000000000000114,
+      "confirmations": 3,
+      "entry_cost": 360.09459770906494,
+      "entry_time": 1795240456,
+      "signal_time": 1795239000
+    }
+  },
   "last_signal": {
     "GENIUS/USD": 1795212900,
     "EVAA/USD": 1795215600,
     "PROS/USD": 1795217400,
     "BLESS/USD": 1795224600,
-    "VELVET/USD": 1795224600
+    "VELVET/USD": 1795224600,
+    "RARE/USD": 1795239000,
+    "GFI/USD": 1795239000
   },
-  "last_processed_5m": {},
+  "last_processed_5m": {
+    "RARE/USD": 1795239900,
+    "GFI/USD": 1795239900
+  },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
     "GENIUS/USD": 1795218519.9562798,
