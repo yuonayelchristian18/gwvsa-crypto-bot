@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 731.0718741686477,
+  "cash": 1656.4732803747906,
   "positions": {
     "ONE/USD": {
       "quantity": 722.6046623071142,
@@ -20,25 +20,6 @@
       "entry_cost": 150.0911407105823,
       "entry_time": 1795256745,
       "signal_time": 1795255200
-    },
-    "RARE/USD": {
-      "quantity": 44572.43672447797,
-      "entry": 0.02208577905,
-      "stop": 0.020813744571428577,
-      "target": 0.02526586524642856,
-      "risk": 0.0012720344785714238,
-      "atr": 0.0017292771428571425,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 137.95,
-      "net_at_stop": 60.0,
-      "setup": "BREAKOUT",
-      "rsi": 72.70916334661352,
-      "confirmations": 3,
-      "entry_cost": 985.4014062061432,
-      "entry_time": 1795267981,
-      "signal_time": 1795266900
     }
   },
   "last_signal": {
@@ -57,8 +38,7 @@
     "PIEVERSE/USD": 1795258800
   },
   "last_processed_5m": {
-    "ONE/USD": 1795267200,
-    "RARE/USD": 1795267500
+    "ONE/USD": 1795270500
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -66,14 +46,14 @@
     "PROS/USD": 1795225428.018376,
     "BLESS/USD": 1795229006.4937248,
     "VELVET/USD": 1795229007.8009374,
-    "RARE/USD": 1795244085.7824225,
+    "RARE/USD": 1795271018.5773814,
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977
   },
-  "total_trades": 12,
+  "total_trades": 13,
   "winning_trades": 4,
-  "losing_trades": 8,
-  "realized_pnl": -133.43557891462703,
+  "losing_trades": 9,
+  "realized_pnl": -193.43557891462726,
   "gross_profit": 605.9971643583826,
-  "gross_loss": 739.4327432730097
+  "gross_loss": 799.4327432730099
 }
