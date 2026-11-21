@@ -1,59 +1,43 @@
 {
   "version": "V8.3",
-  "cash": 583.846581771907,
+  "cash": 993.4522797621989,
   "positions": {
-    "GENIUS/USD": {
-      "quantity": 578.734321509101,
-      "entry": 0.37104880697,
-      "stop": 0.36238816202783997,
-      "target": 0.3927004193254,
-      "risk": 0.008660644942160012,
-      "atr": 0.001400608214285706,
+    "PROS/USD": {
+      "quantity": 1342.879800664326,
+      "entry": 0.6916235935680001,
+      "stop": 0.6784754804571429,
+      "target": 0.724493876345143,
+      "risk": 0.013148113110857174,
+      "atr": 0.0058956377142856875,
       "tier": "STRONG",
       "score": 8,
       "r_multiple": 2.5,
-      "target_profit": 11.41,
-      "net_at_stop": 6.065227842875982,
+      "target_profit": 40.78,
+      "net_at_stop": 20.861513745237943,
       "setup": "BREAKOUT",
-      "rsi": 64.22764227642284,
-      "confirmations": 2,
-      "entry_cost": 214.9534182280929,
-      "entry_time": 1795214172,
-      "signal_time": 1795212900
-    },
-    "EVAA/USD": {
-      "quantity": 153.71856322006244,
-      "entry": 7.806474214061501,
-      "stop": 7.480396008642858,
-      "target": 8.621669727608108,
-      "risk": 0.32607820541864285,
-      "atr": 0.13996350671428567,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 120.8,
-      "net_at_stop": 54.197237737653964,
-      "setup": "BREAKOUT",
-      "rsi": 76.87809266756635,
+      "rsi": 75.26652452025607,
       "confirmations": 3,
-      "entry_cost": 1201.2,
-      "entry_time": 1795216594,
-      "signal_time": 1795215600
+      "entry_cost": 929.6961208188061,
+      "entry_time": 1795218726,
+      "signal_time": 1795217400
     }
   },
   "last_signal": {
     "GENIUS/USD": 1795212900,
-    "EVAA/USD": 1795215600
+    "EVAA/USD": 1795215600,
+    "PROS/USD": 1795217400
   },
   "last_processed_5m": {
-    "GENIUS/USD": 1795217100,
-    "EVAA/USD": 1795217100
+    "PROS/USD": 1795218300
   },
-  "last_exit": {},
-  "total_trades": 0,
+  "last_exit": {
+    "EVAA/USD": 1795218518.669316,
+    "GENIUS/USD": 1795218519.9562798
+  },
+  "total_trades": 2,
   "winning_trades": 0,
-  "losing_trades": 0,
-  "realized_pnl": 0.0,
+  "losing_trades": 2,
+  "realized_pnl": -76.851599418995,
   "gross_profit": 0.0,
-  "gross_loss": 0.0
+  "gross_loss": 76.851599418995
 }
