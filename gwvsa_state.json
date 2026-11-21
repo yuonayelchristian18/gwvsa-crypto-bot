@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 540.6985697413222,
+  "cash": 731.0718741686477,
   "positions": {
     "ONE/USD": {
       "quantity": 722.6046623071142,
@@ -21,24 +21,24 @@
       "entry_time": 1795256745,
       "signal_time": 1795255200
     },
-    "PIEVERSE/USD": {
-      "quantity": 299.0588530886986,
-      "entry": 4.012588116373499,
-      "stop": 3.9414306907644967,
-      "target": 4.154902967591505,
-      "risk": 0.07115742560900262,
-      "atr": 0.04851639064285721,
-      "tier": "MEDIUM",
-      "score": 6,
-      "r_multiple": 2.0,
-      "target_profit": 38.26,
-      "net_at_stop": 25.425289366531175,
-      "setup": "SWEEP",
-      "rsi": 31.561643835616323,
-      "confirmations": 2,
-      "entry_cost": 1201.2,
-      "entry_time": 1795259791,
-      "signal_time": 1795258800
+    "RARE/USD": {
+      "quantity": 44572.43672447797,
+      "entry": 0.02208577905,
+      "stop": 0.020813744571428577,
+      "target": 0.02526586524642856,
+      "risk": 0.0012720344785714238,
+      "atr": 0.0017292771428571425,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 137.95,
+      "net_at_stop": 60.0,
+      "setup": "BREAKOUT",
+      "rsi": 72.70916334661352,
+      "confirmations": 3,
+      "entry_cost": 985.4014062061432,
+      "entry_time": 1795267981,
+      "signal_time": 1795266900
     }
   },
   "last_signal": {
@@ -47,7 +47,7 @@
     "PROS/USD": 1795217400,
     "BLESS/USD": 1795224600,
     "VELVET/USD": 1795224600,
-    "RARE/USD": 1795239000,
+    "RARE/USD": 1795266900,
     "GFI/USD": 1795239000,
     "USUAL/USD": 1795243500,
     "SOFID/USD": 1795247100,
@@ -57,8 +57,8 @@
     "PIEVERSE/USD": 1795258800
   },
   "last_processed_5m": {
-    "ONE/USD": 1795262700,
-    "PIEVERSE/USD": 1795262700
+    "ONE/USD": 1795267200,
+    "RARE/USD": 1795267500
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -67,12 +67,13 @@
     "BLESS/USD": 1795229006.4937248,
     "VELVET/USD": 1795229007.8009374,
     "RARE/USD": 1795244085.7824225,
-    "GFI/USD": 1795244087.0580542
+    "GFI/USD": 1795244087.0580542,
+    "PIEVERSE/USD": 1795267776.694977
   },
-  "total_trades": 11,
+  "total_trades": 12,
   "winning_trades": 4,
-  "losing_trades": 7,
-  "realized_pnl": -108.01028954809564,
+  "losing_trades": 8,
+  "realized_pnl": -133.43557891462703,
   "gross_profit": 605.9971643583826,
-  "gross_loss": 714.0074539064783
+  "gross_loss": 739.4327432730097
 }
