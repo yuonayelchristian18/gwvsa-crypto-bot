@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 1741.8985697413223,
+  "cash": 540.6985697413222,
   "positions": {
     "ONE/USD": {
       "quantity": 722.6046623071142,
@@ -20,6 +20,25 @@
       "entry_cost": 150.0911407105823,
       "entry_time": 1795256745,
       "signal_time": 1795255200
+    },
+    "PIEVERSE/USD": {
+      "quantity": 299.0588530886986,
+      "entry": 4.012588116373499,
+      "stop": 3.9414306907644967,
+      "target": 4.154902967591505,
+      "risk": 0.07115742560900262,
+      "atr": 0.04851639064285721,
+      "tier": "MEDIUM",
+      "score": 6,
+      "r_multiple": 2.0,
+      "target_profit": 38.26,
+      "net_at_stop": 25.425289366531175,
+      "setup": "SWEEP",
+      "rsi": 31.561643835616323,
+      "confirmations": 2,
+      "entry_cost": 1201.2,
+      "entry_time": 1795259791,
+      "signal_time": 1795258800
     }
   },
   "last_signal": {
@@ -34,10 +53,12 @@
     "SOFID/USD": 1795247100,
     "CTR/USD": 1795251600,
     "ESPORTS/USD": 1795251600,
-    "ONE/USD": 1795255200
+    "ONE/USD": 1795255200,
+    "PIEVERSE/USD": 1795258800
   },
   "last_processed_5m": {
-    "ONE/USD": 1795256400
+    "ONE/USD": 1795259100,
+    "PIEVERSE/USD": 1795259400
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
