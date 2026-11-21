@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 1656.4732803747906,
+  "cash": 455.2732803747906,
   "positions": {
     "ONE/USD": {
       "quantity": 722.6046623071142,
@@ -20,11 +20,30 @@
       "entry_cost": 150.0911407105823,
       "entry_time": 1795256745,
       "signal_time": 1795255200
+    },
+    "EVAA/USD": {
+      "quantity": 138.90372726767347,
+      "entry": 8.639077032739001,
+      "stop": 8.536600369992032,
+      "target": 8.84403035823294,
+      "risk": 0.10247666274696954,
+      "atr": 0.1856220172857141,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 24.2,
+      "net_at_stop": 18.397025789058024,
+      "setup": "BREAKOUT",
+      "rsi": 64.34970247825805,
+      "confirmations": 2,
+      "entry_cost": 1201.2,
+      "entry_time": 1795274333,
+      "signal_time": 1795273200
     }
   },
   "last_signal": {
     "GENIUS/USD": 1795212900,
-    "EVAA/USD": 1795215600,
+    "EVAA/USD": 1795273200,
     "PROS/USD": 1795217400,
     "BLESS/USD": 1795224600,
     "VELVET/USD": 1795224600,
@@ -38,7 +57,8 @@
     "PIEVERSE/USD": 1795258800
   },
   "last_processed_5m": {
-    "ONE/USD": 1795270500
+    "ONE/USD": 1795273500,
+    "EVAA/USD": 1795273800
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
