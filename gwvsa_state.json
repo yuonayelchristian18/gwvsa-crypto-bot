@@ -1,44 +1,25 @@
 {
   "version": "V8.3",
-  "cash": 713.20911586253,
+  "cash": 1741.8985697413223,
   "positions": {
-    "CTR/USD": {
-      "quantity": 35076.63953357592,
-      "entry": 0.014237394028799998,
-      "stop": 0.013870614087321596,
-      "target": 0.0149709539117568,
-      "risk": 0.00036677994147840155,
-      "atr": 7.930742857142828e-05,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 23.13,
-      "net_at_stop": 15.30948625183955,
-      "setup": "BREAKOUT",
-      "rsi": 73.8317757009346,
-      "confirmations": 2,
-      "entry_cost": 499.89933818394945,
-      "entry_time": 1795252663,
-      "signal_time": 1795251600
-    },
-    "ESPORTS/USD": {
-      "quantity": 25963.011746083583,
-      "entry": 0.008960477830399998,
-      "stop": 0.008854117129881598,
-      "target": 0.009226379581695998,
-      "risk": 0.00010636070051840002,
-      "atr": 8.479794285714335e-05,
+    "ONE/USD": {
+      "quantity": 722.6046623071142,
+      "entry": 0.20750101311599997,
+      "stop": 0.20203532695756798,
+      "target": 0.22116522851207993,
+      "risk": 0.005465686158431987,
+      "atr": 0.0022709119285714324,
       "tier": "STRONG",
       "score": 8,
       "r_multiple": 2.5,
-      "target_profit": 5.71,
-      "net_at_stop": 3.9129136575782155,
+      "target_profit": 9.09,
+      "net_at_stop": 4.683000202134961,
       "setup": "BREAKOUT",
-      "rsi": 72.2222222222221,
+      "rsi": 77.57255936675458,
       "confirmations": 3,
-      "entry_cost": 232.87363215235789,
-      "entry_time": 1795252767,
-      "signal_time": 1795251600
+      "entry_cost": 150.0911407105823,
+      "entry_time": 1795256745,
+      "signal_time": 1795255200
     }
   },
   "last_signal": {
@@ -52,11 +33,11 @@
     "USUAL/USD": 1795243500,
     "SOFID/USD": 1795247100,
     "CTR/USD": 1795251600,
-    "ESPORTS/USD": 1795251600
+    "ESPORTS/USD": 1795251600,
+    "ONE/USD": 1795255200
   },
   "last_processed_5m": {
-    "CTR/USD": 1795252200,
-    "ESPORTS/USD": 1795252200
+    "ONE/USD": 1795256400
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -67,10 +48,10 @@
     "RARE/USD": 1795244085.7824225,
     "GFI/USD": 1795244087.0580542
   },
-  "total_trades": 9,
-  "winning_trades": 2,
+  "total_trades": 11,
+  "winning_trades": 4,
   "losing_trades": 7,
-  "realized_pnl": -554.0179138011629,
-  "gross_profit": 159.98954010531543,
+  "realized_pnl": -108.01028954809564,
+  "gross_profit": 605.9971643583826,
   "gross_loss": 714.0074539064783
 }
