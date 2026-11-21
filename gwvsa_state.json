@@ -1,46 +1,7 @@
 {
   "version": "V8.3",
-  "cash": 372.45319450184616,
-  "positions": {
-    "BLESS/USD": {
-      "quantity": 74108.6982139007,
-      "entry": 0.016192431238455,
-      "stop": 0.015733377952285715,
-      "target": 0.017110537810793566,
-      "risk": 0.00045905328616928365,
-      "atr": 0.0002793405385714285,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 63.67,
-      "net_at_stop": 38.13304287495857,
-      "setup": "BREAKOUT",
-      "rsi": 69.63937621832358,
-      "confirmations": 2,
-      "entry_cost": 1201.2,
-      "entry_time": 1795225528,
-      "signal_time": 1795224600
-    },
-    "VELVET/USD": {
-      "quantity": 3951.387728026236,
-      "entry": 0.07375833516599999,
-      "stop": 0.07233136924285714,
-      "target": 0.07732574997385709,
-      "risk": 0.0014269659231428422,
-      "atr": 0.00040961378571428543,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 12.58,
-      "net_at_stop": 7.072323128688698,
-      "setup": "BREAKOUT",
-      "rsi": 55.263157894736864,
-      "confirmations": 3,
-      "entry_cost": 291.73922819499285,
-      "entry_time": 1795225828,
-      "signal_time": 1795224600
-    }
-  },
+  "cash": 1690.2240526775324,
+  "positions": {},
   "last_signal": {
     "GENIUS/USD": 1795212900,
     "EVAA/USD": 1795215600,
@@ -48,19 +9,18 @@
     "BLESS/USD": 1795224600,
     "VELVET/USD": 1795224600
   },
-  "last_processed_5m": {
-    "BLESS/USD": 1795225200,
-    "VELVET/USD": 1795225500
-  },
+  "last_processed_5m": {},
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
     "GENIUS/USD": 1795218519.9562798,
-    "PROS/USD": 1795225428.018376
+    "PROS/USD": 1795225428.018376,
+    "BLESS/USD": 1795229006.4937248,
+    "VELVET/USD": 1795229007.8009374
   },
-  "total_trades": 3,
+  "total_trades": 5,
   "winning_trades": 0,
-  "losing_trades": 3,
-  "realized_pnl": -134.60757730316098,
+  "losing_trades": 5,
+  "realized_pnl": -309.7759473224676,
   "gross_profit": 0.0,
-  "gross_loss": 134.60757730316098
+  "gross_loss": 309.7759473224676
 }
