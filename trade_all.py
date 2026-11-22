@@ -107,7 +107,8 @@ MIN_CONFIRMATIONS = 2       # 2 of 3 (V8 used 3 of 3; lowered for more trades)
 ALLOW_PULLBACK_1H = True    # also accept 1H pullbacks in an uptrend (EMA8>EMA40>EMA200, price>EMA40)
 REQUIRE_RETEST = False
 ALLOW_MOMENTUM_ENTRY = False  # was True; momentum entries lost most often
-ALLOW_4H_BULLISH = True   # hard filter: skip anything the 4H trend rejects
+REQUIRE_4H_BULLISH = True     # hard filter: skip anything the 4H trend rejects
+ALLOW_NEUTRAL_4H = False      # True also accepts "neutral" 4H context
 
 FORCE_TEST_TRADE = os.environ.get("FORCE_TEST_TRADE") == "1"
 FORCE_TEST_MARKET = "SOL/CAD"
@@ -516,9 +517,6 @@ def trend_report(candles, timeframe):
             "reason": "Indicator data unavailable"
         }
 
-    
-
-
     improving = e8 > previous_e8
     short_trend = e8 > e40
     neutral = False
@@ -561,6 +559,8 @@ def trend_report(candles, timeframe):
         "improving": improving,
         "reason": reason
     }
+
+
 def print_trend(market, timeframe, report):
     print(f"\n{market} - {timeframe}")
 
@@ -1460,7 +1460,11 @@ def main():
                     print(f"{market}: 1H trend rejected")
                     continue
 
-                                four_h = report4h["valid"] and report4h["bullish"]
+                # Then the 4H check (only for markets that pass 1H).
+                report4h = trend_report(get_candles(pair, 240, fx), "4H")
+                print_trend(market, "4H", report4h)
+
+                four_h = report4h["valid"] and report4h["bullish"]
                 four_h_ok = four_h or (
                     ALLOW_NEUTRAL_4H
                     and report4h["valid"]
@@ -1470,12 +1474,6 @@ def main():
                 if REQUIRE_4H_BULLISH and not four_h_ok:
                     print(f"{market}: 4H not bullish; skipping")
                     continue
-
-
-                if REQUIRE_4H_BULLISH and not four_h:
-                    print(f"{market}: 4H not bullish; skipping")
-                    continue
-
 
             candles15 = get_candles(pair, 15, fx)
             candles5 = get_candles(pair, 5, fx)
