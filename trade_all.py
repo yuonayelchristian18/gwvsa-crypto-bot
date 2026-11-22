@@ -1460,9 +1460,17 @@ def main():
                     print(f"{market}: 1H trend rejected")
                     continue
 
-                report4h = trend_report(get_candles(pair, 240, fx), "4H")
-                print_trend(market, "4H", report4h)
-                four_h = report4h["valid"] and report4h["                four_h = report4h["valid"] and report4h["bullish"]
+                                four_h = report4h["valid"] and report4h["bullish"]
+                four_h_ok = four_h or (
+                    ALLOW_NEUTRAL_4H
+                    and report4h["valid"]
+                    and report4h.get("neutral", False)
+                )
+
+                if REQUIRE_4H_BULLISH and not four_h_ok:
+                    print(f"{market}: 4H not bullish; skipping")
+                    continue
+
 
                 if REQUIRE_4H_BULLISH and not four_h:
                     print(f"{market}: 4H not bullish; skipping")
