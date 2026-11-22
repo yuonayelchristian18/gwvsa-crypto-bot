@@ -1,26 +1,7 @@
 {
   "version": "V8.3",
-  "cash": 604.5971946683692,
+  "cash": 659.8114917328414,
   "positions": {
-    "VVV/USD": {
-      "quantity": 35.38384735858223,
-      "entry": 33.913779579679996,
-      "stop": 33.081042266857146,
-      "target": 35.5792542053257,
-      "risk": 0.8327373128228501,
-      "atr": 0.5491865657142847,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 55.21,
-      "net_at_stop": 33.0053485322361,
-      "setup": "BREAKOUT",
-      "rsi": 65.20125606622892,
-      "confirmations": 2,
-      "entry_cost": 1201.2,
-      "entry_time": 1795281199,
-      "signal_time": 1795279500
-    },
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
       "entry": 3.4693220426699996,
@@ -39,6 +20,25 @@
       "entry_cost": 34.05178189160889,
       "entry_time": 1795282347,
       "signal_time": 1795281300
+    },
+    "VVV/USD": {
+      "quantity": 33.99985249051118,
+      "entry": 35.29427077176,
+      "stop": 33.65656263857143,
+      "target": 38.56968703813713,
+      "risk": 1.6377081331885677,
+      "atr": 0.41262080571428583,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 107.54,
+      "net_at_stop": 59.16932696285471,
+      "setup": "SWEEP",
+      "rsi": 71.89432265317599,
+      "confirmations": 2,
+      "entry_cost": 1201.2000000000003,
+      "entry_time": 1795305799,
+      "signal_time": 1795304700
     }
   },
   "last_signal": {
@@ -55,12 +55,12 @@
     "ESPORTS/USD": 1795251600,
     "ONE/USD": 1795255200,
     "PIEVERSE/USD": 1795258800,
-    "VVV/USD": 1795279500,
+    "VVV/USD": 1795304700,
     "FOLKS/USD": 1795281300
   },
   "last_processed_5m": {
-    "VVV/USD": 1795302000,
-    "FOLKS/USD": 1795302000
+    "FOLKS/USD": 1795305300,
+    "VVV/USD": 1795305300
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -72,10 +72,10 @@
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977
   },
-  "total_trades": 15,
-  "winning_trades": 6,
+  "total_trades": 16,
+  "winning_trades": 7,
   "losing_trades": 9,
-  "realized_pnl": -160.15102344002207,
-  "gross_profit": 639.2817198329878,
+  "realized_pnl": -104.9367263755496,
+  "gross_profit": 694.4960168974603,
   "gross_loss": 799.4327432730099
 }
