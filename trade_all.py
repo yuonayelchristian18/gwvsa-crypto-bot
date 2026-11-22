@@ -516,8 +516,12 @@ def trend_report(candles, timeframe):
             "reason": "Indicator data unavailable"
         }
 
+    
+
+
     improving = e8 > previous_e8
     short_trend = e8 > e40
+    neutral = False
 
     if timeframe == "1H":
         # EMA 8 rising and price above it.
@@ -538,14 +542,18 @@ def trend_report(candles, timeframe):
             price > e200 and improving
         )
 
+        neutral = (not bullish) and price > e8 and improving
+
         reason = (
-            "Supportive 4H context"
-            if bullish else "Bearish 4H context"
+            "Supportive 4H context" if bullish
+            else "Neutral 4H context" if neutral
+            else "Bearish 4H context"
         )
 
     return {
         "valid": True,
         "bullish": bullish,
+        "neutral": neutral,
         "price": price,
         "ema8": e8,
         "ema40": e40,
@@ -553,8 +561,6 @@ def trend_report(candles, timeframe):
         "improving": improving,
         "reason": reason
     }
-
-
 def print_trend(market, timeframe, report):
     print(f"\n{market} - {timeframe}")
 
