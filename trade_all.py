@@ -1462,11 +1462,12 @@ def main():
 
                 report4h = trend_report(get_candles(pair, 240, fx), "4H")
                 print_trend(market, "4H", report4h)
-                four_h = report4h["valid"] and report4h["bullish"]
+                four_h = report4h["valid"] and report4h["                four_h = report4h["valid"] and report4h["bullish"]
 
                 if REQUIRE_4H_BULLISH and not four_h:
                     print(f"{market}: 4H not bullish; skipping")
                     continue
+
 
             candles15 = get_candles(pair, 15, fx)
             candles5 = get_candles(pair, 5, fx)
