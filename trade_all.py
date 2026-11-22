@@ -107,7 +107,7 @@ MIN_CONFIRMATIONS = 2       # 2 of 3 (V8 used 3 of 3; lowered for more trades)
 ALLOW_PULLBACK_1H = True    # also accept 1H pullbacks in an uptrend (EMA8>EMA40>EMA200, price>EMA40)
 REQUIRE_RETEST = False
 ALLOW_MOMENTUM_ENTRY = False  # was True; momentum entries lost most often
-REQUIRE_4H_BULLISH = True   # hard filter: skip anything the 4H trend rejects
+ALLOW_4H_BULLISH = True   # hard filter: skip anything the 4H trend rejects
 
 FORCE_TEST_TRADE = os.environ.get("FORCE_TEST_TRADE") == "1"
 FORCE_TEST_MARKET = "SOL/CAD"
