@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 659.8114917328414,
+  "cash": 767.3537456585514,
   "positions": {
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
@@ -21,24 +21,24 @@
       "entry_time": 1795282347,
       "signal_time": 1795281300
     },
-    "VVV/USD": {
-      "quantity": 33.99985249051118,
-      "entry": 35.29427077176,
-      "stop": 33.65656263857143,
-      "target": 38.56968703813713,
-      "risk": 1.6377081331885677,
-      "atr": 0.41262080571428583,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 107.54,
-      "net_at_stop": 59.16932696285471,
-      "setup": "SWEEP",
-      "rsi": 71.89432265317599,
-      "confirmations": 2,
-      "entry_cost": 1201.2000000000003,
-      "entry_time": 1795305799,
-      "signal_time": 1795304700
+    "NIGHT/USD": {
+      "quantity": 16816.982377856966,
+      "entry": 0.0713564403552,
+      "stop": 0.0705991801539024,
+      "target": 0.073249590858444,
+      "risk": 0.0007572602012975993,
+      "atr": 0.0005343117428571415,
+      "tier": "STRONG",
+      "score": 9,
+      "r_multiple": 2.5,
+      "target_profit": 28.17,
+      "net_at_stop": 16.30817453258413,
+      "setup": "BREAKOUT",
+      "rsi": 71.88612099644142,
+      "confirmations": 3,
+      "entry_cost": 1201.2,
+      "entry_time": 1795410444,
+      "signal_time": 1795409100
     }
   },
   "last_signal": {
@@ -56,11 +56,12 @@
     "ONE/USD": 1795255200,
     "PIEVERSE/USD": 1795258800,
     "VVV/USD": 1795304700,
-    "FOLKS/USD": 1795281300
+    "FOLKS/USD": 1795281300,
+    "NIGHT/USD": 1795409100
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795405500,
-    "VVV/USD": 1795405500
+    "FOLKS/USD": 1795410000,
+    "NIGHT/USD": 1795410000
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -72,10 +73,10 @@
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977
   },
-  "total_trades": 16,
-  "winning_trades": 7,
+  "total_trades": 17,
+  "winning_trades": 8,
   "losing_trades": 9,
-  "realized_pnl": -104.9367263755496,
-  "gross_profit": 694.4960168974603,
+  "realized_pnl": 2.6055275501601045,
+  "gross_profit": 802.03827082317,
   "gross_loss": 799.4327432730099
 }
