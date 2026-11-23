@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 904.5930667672513,
+  "cash": 1753.1980299402335,
   "positions": {
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
@@ -20,25 +20,6 @@
       "entry_cost": 34.05178189160889,
       "entry_time": 1795282347,
       "signal_time": 1795281300
-    },
-    "DGAI/USD": {
-      "quantity": 549.2779316492341,
-      "entry": 1.5744130881084002,
-      "stop": 1.5502013640010261,
-      "target": 1.6228365363231483,
-      "risk": 0.024211724107374044,
-      "atr": 0.021841711885714248,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 23.51,
-      "net_at_stop": 16.291207364005214,
-      "setup": "BREAKOUT",
-      "rsi": 64.62906755135177,
-      "confirmations": 2,
-      "entry_cost": 865.655154962263,
-      "entry_time": 1795466977,
-      "signal_time": 1795465800
     }
   },
   "last_signal": {
@@ -62,8 +43,7 @@
     "DGAI/USD": 1795465800
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795469700,
-    "DGAI/USD": 1795469700
+    "FOLKS/USD": 1795473300
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -76,12 +56,13 @@
     "PIEVERSE/USD": 1795267776.694977,
     "NIGHT/USD": 1795448189.3869057,
     "VVV/USD": 1795438754.8843014,
-    "LUNA/USD": 1795466751.9662716
+    "LUNA/USD": 1795466751.9662716,
+    "DGAI/USD": 1795473826.1710367
   },
-  "total_trades": 22,
+  "total_trades": 23,
   "winning_trades": 8,
-  "losing_trades": 14,
-  "realized_pnl": -195.6999963788768,
+  "losing_trades": 15,
+  "realized_pnl": -212.7501881681576,
   "gross_profit": 802.03827082317,
-  "gross_loss": 997.7382672020468
+  "gross_loss": 1014.7884589913276
 }
