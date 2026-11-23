@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 691.0455711259672,
+  "cash": 1872.4189059008456,
   "positions": {
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
@@ -20,25 +20,6 @@
       "entry_cost": 34.05178189160889,
       "entry_time": 1795282347,
       "signal_time": 1795281300
-    },
-    "VVV/USD": {
-      "quantity": 32.06022285728604,
-      "entry": 37.42955890674,
-      "stop": 36.92237685200063,
-      "target": 38.69751404358841,
-      "risk": 0.5071820547393671,
-      "atr": 0.19953065142857238,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 36.97,
-      "net_at_stop": 19.8266652251215,
-      "setup": "BREAKOUT",
-      "rsi": 62.31038506417751,
-      "confirmations": 3,
-      "entry_cost": 1201.2,
-      "entry_time": 1795431485,
-      "signal_time": 1795429800
     }
   },
   "last_signal": {
@@ -60,8 +41,7 @@
     "NIGHT/USD": 1795409100
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795434300,
-    "VVV/USD": 1795434300
+    "FOLKS/USD": 1795438200
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -72,12 +52,13 @@
     "RARE/USD": 1795271018.5773814,
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977,
-    "NIGHT/USD": 1795427403.2363856
+    "NIGHT/USD": 1795427403.2363856,
+    "VVV/USD": 1795438754.8843014
   },
-  "total_trades": 19,
+  "total_trades": 20,
   "winning_trades": 8,
-  "losing_trades": 11,
-  "realized_pnl": -73.70264698242397,
+  "losing_trades": 12,
+  "realized_pnl": -93.52931220754556,
   "gross_profit": 802.03827082317,
-  "gross_loss": 875.740917805594
+  "gross_loss": 895.5675830307156
 }
