@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 1753.1980299402335,
+  "cash": 1578.9945378557022,
   "positions": {
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
@@ -20,6 +20,25 @@
       "entry_cost": 34.05178189160889,
       "entry_time": 1795282347,
       "signal_time": 1795281300
+    },
+    "USUAL/USD": {
+      "quantity": 10407.375761885101,
+      "entry": 0.016721742983399998,
+      "stop": 0.015444734175,
+      "target": 0.01991426500439999,
+      "risk": 0.0012770088083999976,
+      "atr": 0.00019796009999999923,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 32.22,
+      "net_at_stop": 14.106814373828113,
+      "setup": "SWEEP",
+      "rsi": 62.204724409448865,
+      "confirmations": 3,
+      "entry_cost": 174.20349208453132,
+      "entry_time": 1795477760,
+      "signal_time": 1795476600
     }
   },
   "last_signal": {
@@ -30,7 +49,7 @@
     "VELVET/USD": 1795224600,
     "RARE/USD": 1795266900,
     "GFI/USD": 1795239000,
-    "USUAL/USD": 1795243500,
+    "USUAL/USD": 1795476600,
     "SOFID/USD": 1795247100,
     "CTR/USD": 1795251600,
     "ESPORTS/USD": 1795251600,
@@ -43,7 +62,8 @@
     "DGAI/USD": 1795465800
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795473300
+    "FOLKS/USD": 1795476900,
+    "USUAL/USD": 1795477200
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
