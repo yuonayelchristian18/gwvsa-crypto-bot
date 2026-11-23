@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 623.4633618031305,
+  "cash": 904.5930667672513,
   "positions": {
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
@@ -21,24 +21,24 @@
       "entry_time": 1795282347,
       "signal_time": 1795281300
     },
-    "LUNA/USD": {
-      "quantity": 18742217.9920093,
-      "entry": 6.40265736164e-05,
-      "stop": 6.134051365357142e-05,
-      "target": 6.939869354205715e-05,
-      "risk": 2.6860599628285742e-06,
-      "atr": 1.4080653857142866e-06,
+    "DGAI/USD": {
+      "quantity": 549.2779316492341,
+      "entry": 1.5744130881084002,
+      "stop": 1.5502013640010261,
+      "target": 1.6228365363231483,
+      "risk": 0.024211724107374044,
+      "atr": 0.021841711885714248,
       "tier": "MEDIUM",
       "score": 7,
       "r_multiple": 2.0,
-      "target_profit": 96.24,
-      "net_at_stop": 54.415140073616,
-      "setup": "SWEEP",
-      "rsi": 61.19791666666674,
+      "target_profit": 23.51,
+      "net_at_stop": 16.291207364005214,
+      "setup": "BREAKOUT",
+      "rsi": 64.62906755135177,
       "confirmations": 2,
-      "entry_cost": 1201.2,
-      "entry_time": 1795448404,
-      "signal_time": 1795446900
+      "entry_cost": 865.655154962263,
+      "entry_time": 1795466977,
+      "signal_time": 1795465800
     }
   },
   "last_signal": {
@@ -58,11 +58,12 @@
     "VVV/USD": 1795429800,
     "FOLKS/USD": 1795281300,
     "NIGHT/USD": 1795442400,
-    "LUNA/USD": 1795446900
+    "LUNA/USD": 1795446900,
+    "DGAI/USD": 1795465800
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795463400,
-    "LUNA/USD": 1795463400
+    "FOLKS/USD": 1795466400,
+    "DGAI/USD": 1795466400
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -74,12 +75,13 @@
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977,
     "NIGHT/USD": 1795448189.3869057,
-    "VVV/USD": 1795438754.8843014
+    "VVV/USD": 1795438754.8843014,
+    "LUNA/USD": 1795466751.9662716
   },
-  "total_trades": 21,
+  "total_trades": 22,
   "winning_trades": 8,
-  "losing_trades": 13,
-  "realized_pnl": -141.28485630526063,
+  "losing_trades": 14,
+  "realized_pnl": -195.6999963788768,
   "gross_profit": 802.03827082317,
-  "gross_loss": 943.3231271284307
+  "gross_loss": 997.7382672020468
 }
