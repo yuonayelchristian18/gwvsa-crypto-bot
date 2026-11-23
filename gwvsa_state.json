@@ -1,6 +1,6 @@
 {
   "version": "V8.3",
-  "cash": 1040.6052184833836,
+  "cash": 691.0455711259672,
   "positions": {
     "FOLKS/USD": {
       "quantity": 9.805305967301106,
@@ -21,24 +21,24 @@
       "entry_time": 1795282347,
       "signal_time": 1795281300
     },
-    "BLESS/USD": {
-      "quantity": 34333.278708822305,
-      "entry": 0.02652614772808,
-      "stop": 0.024854782991071432,
-      "target": 0.029868877202097133,
-      "risk": 0.0016713647370085669,
-      "atr": 0.0005565530757142851,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 111.81,
-      "net_at_stop": 60.0,
-      "setup": "SWEEP",
-      "rsi": 60.474308300395165,
-      "confirmations": 2,
-      "entry_cost": 911.6403526425838,
-      "entry_time": 1795427488,
-      "signal_time": 1795426200
+    "VVV/USD": {
+      "quantity": 32.06022285728604,
+      "entry": 37.42955890674,
+      "stop": 36.92237685200063,
+      "target": 38.69751404358841,
+      "risk": 0.5071820547393671,
+      "atr": 0.19953065142857238,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 36.97,
+      "net_at_stop": 19.8266652251215,
+      "setup": "BREAKOUT",
+      "rsi": 62.31038506417751,
+      "confirmations": 3,
+      "entry_cost": 1201.2,
+      "entry_time": 1795431485,
+      "signal_time": 1795429800
     }
   },
   "last_signal": {
@@ -55,29 +55,29 @@
     "ESPORTS/USD": 1795251600,
     "ONE/USD": 1795255200,
     "PIEVERSE/USD": 1795258800,
-    "VVV/USD": 1795304700,
+    "VVV/USD": 1795429800,
     "FOLKS/USD": 1795281300,
     "NIGHT/USD": 1795409100
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795427100,
-    "BLESS/USD": 1795427100
+    "FOLKS/USD": 1795431000,
+    "VVV/USD": 1795431000
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
     "GENIUS/USD": 1795218519.9562798,
     "PROS/USD": 1795225428.018376,
-    "BLESS/USD": 1795229006.4937248,
+    "BLESS/USD": 1795431452.3397312,
     "VELVET/USD": 1795229007.8009374,
     "RARE/USD": 1795271018.5773814,
     "GFI/USD": 1795244087.0580542,
     "PIEVERSE/USD": 1795267776.694977,
     "NIGHT/USD": 1795427403.2363856
   },
-  "total_trades": 18,
+  "total_trades": 19,
   "winning_trades": 8,
-  "losing_trades": 10,
-  "realized_pnl": -13.702646982423857,
+  "losing_trades": 11,
+  "realized_pnl": -73.70264698242397,
   "gross_profit": 802.03827082317,
-  "gross_loss": 815.7409178055939
+  "gross_loss": 875.740917805594
 }
