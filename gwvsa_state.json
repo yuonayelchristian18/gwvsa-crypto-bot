@@ -1,26 +1,7 @@
 {
   "version": "V8.3",
-  "cash": 1578.9945378557022,
+  "cash": 997.6879059092257,
   "positions": {
-    "FOLKS/USD": {
-      "quantity": 9.805305967301106,
-      "entry": 3.4693220426699996,
-      "stop": 3.3407102668166395,
-      "target": 3.7908514823034,
-      "risk": 0.12861177585336003,
-      "atr": 0.02554143728571418,
-      "tier": "STRONG",
-      "score": 9,
-      "r_multiple": 2.5,
-      "target_profit": 2.9,
-      "net_at_stop": 1.4914719118215007,
-      "setup": "SWEEP",
-      "rsi": 39.21150772509325,
-      "confirmations": 3,
-      "entry_cost": 34.05178189160889,
-      "entry_time": 1795282347,
-      "signal_time": 1795281300
-    },
     "USUAL/USD": {
       "quantity": 10407.375761885101,
       "entry": 0.016721742983399998,
@@ -39,6 +20,25 @@
       "entry_cost": 174.20349208453132,
       "entry_time": 1795477760,
       "signal_time": 1795476600
+    },
+    "AI/USD": {
+      "quantity": 26326.46627863716,
+      "entry": 0.0232879804512,
+      "stop": 0.022585304514285715,
+      "target": 0.024693332325028572,
+      "risk": 0.0007026759369142856,
+      "atr": 0.0002686507428571426,
+      "tier": "MEDIUM",
+      "score": 7,
+      "r_multiple": 2.0,
+      "target_profit": 34.76,
+      "net_at_stop": 20.597650847363365,
+      "setup": "SWEEP",
+      "rsi": 55.11811023622037,
+      "confirmations": 3,
+      "entry_cost": 613.7033222781242,
+      "entry_time": 1795534525,
+      "signal_time": 1795533300
     }
   },
   "last_signal": {
@@ -59,11 +59,12 @@
     "FOLKS/USD": 1795281300,
     "NIGHT/USD": 1795442400,
     "LUNA/USD": 1795446900,
-    "DGAI/USD": 1795465800
+    "DGAI/USD": 1795465800,
+    "AI/USD": 1795533300
   },
   "last_processed_5m": {
-    "FOLKS/USD": 1795529700,
-    "USUAL/USD": 1795529700
+    "USUAL/USD": 1795533900,
+    "AI/USD": 1795534200
   },
   "last_exit": {
     "EVAA/USD": 1795218518.669316,
@@ -77,12 +78,13 @@
     "NIGHT/USD": 1795448189.3869057,
     "VVV/USD": 1795438754.8843014,
     "LUNA/USD": 1795466751.9662716,
-    "DGAI/USD": 1795473826.1710367
+    "DGAI/USD": 1795473826.1710367,
+    "FOLKS/USD": 1795534272.7200294
   },
-  "total_trades": 23,
+  "total_trades": 24,
   "winning_trades": 8,
-  "losing_trades": 15,
-  "realized_pnl": -212.7501881681576,
+  "losing_trades": 16,
+  "realized_pnl": -214.40527972811873,
   "gross_profit": 802.03827082317,
-  "gross_loss": 1014.7884589913276
+  "gross_loss": 1016.4435505512888
 }
