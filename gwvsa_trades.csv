@@ -1,1 +1,2 @@
 time_utc,market,side,quantity,entry_price,exit_price,stop_loss,take_profit,net_pnl_cad,result,setup,score,tier,r_multiple,rsi,confirmations,hold_minutes,pnl_r
+2026-11-24T23:42:46.900205+00:00,BLESS/USD,BUY,34077.73803109,0.02521893,,0.02387469,0.02857955,,OPEN_SWEEP_STRONG_score9_2.5R,SWEEP,9,STRONG,2.5,38.88,3,,
