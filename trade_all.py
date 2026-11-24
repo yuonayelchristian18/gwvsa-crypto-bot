@@ -8,10 +8,19 @@ import urllib.request
 from datetime import datetime, timezone
 
 # ============================================================
-# GWVSA PAPER TRADING BOT V8.3
+# GWVSA PAPER TRADING BOT V8.4
 # Kraken public data ONLY. NO REAL ORDERS.
 #
-# What changed from V8.2:
+# What changed from V8.3:
+#  - Minimum 24h volume for crypto set to $500k CAD (was 0), so
+#    tiny thin coins no longer fill the position slots with
+#    $30-$170 trades.
+#  - Fee set to Kraken Pro tier 1 market-order rate (0.8% per side,
+#    was 0.1%). Stops widen automatically (3x round-trip cost rule).
+#  - Max position $1,000, max open positions stay at 2.
+#  - Version bump archives V8.3 records so V8.4 stats start clean.
+#
+# V8.3 (vs V8.2):
 #  - Fixed a replay bug: after entry, the bot used to replay the
 #    5m candle that was still forming when it bought, which holds
 #    price action from BEFORE the entry. That could stop a trade
@@ -48,15 +57,15 @@ from datetime import datetime, timezone
 #    factor, expectancy and break-even win rate.
 # ============================================================
 
-BOT_VERSION = "V8.3"
+BOT_VERSION = "V8.4-KRAKEN"
 
 API = "https://api.kraken.com/0/public"
 
 STARTING_BALANCE = 2000.00
 RISK_PER_TRADE = 60.00        # was 2.00 (30x)
-MAX_POSITION_VALUE = 1200.00  # was 200.00
+MAX_POSITION_VALUE = 1000.00  # two positions of about $1,000 each
 
-FEE_RATE = 0.001
+FEE_RATE = 0.008  # Kraken Pro tier 1 market (taker) fee per side; use 0.004 for limit orders
 SLIPPAGE = 0.0015
 
 # Take-profit as a multiple of the stop distance, by setup score.
@@ -127,7 +136,7 @@ INCLUDE_FOREX = True          # fiat pairs quoted in USD, e.g. EUR/USD
 # 0 = scan everything. Thin markets still get small positions because of
 # MAX_VOLUME_SHARE below.
 MIN_24H_VOLUME_CAD = {
-    "crypto": 0,
+    "crypto": 500_000,        # was 0 in V8.3
     "stock": 0,
     "forex": 0,
 }
@@ -135,7 +144,7 @@ MIN_24H_VOLUME_CAD = {
 # A position may be at most this share of the market's 24h volume, so big
 # orders aren't placed in thin markets (0.005 = 0.5%).
 MAX_VOLUME_SHARE = 0.005
-MAX_OPEN_POSITIONS = 2        # was 8; $1,200 positions can't be held 8 at a time
+MAX_OPEN_POSITIONS = 2        # two positions of about $1,000 each
 CALL_DELAY = 1.1
 
 # Stablecoins, fiat and gold/commodity tokens aren't worth trading.
@@ -198,7 +207,7 @@ def api_get(endpoint, params=None):
 
         request = urllib.request.Request(
             url,
-            headers={"User-Agent": "GWVSA-PaperTrader/8.3"}
+            headers={"User-Agent": "GWVSA-PaperTrader/8.4"}
         )
 
         try:
