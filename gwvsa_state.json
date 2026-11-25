@@ -1,11 +1,34 @@
 {
   "version": "V8.4-KRAKEN",
-  "cash": 1940.0,
-  "positions": {},
-  "last_signal": {
-    "BLESS/USD": 1795562100
+  "cash": 983.2816103876203,
+  "positions": {
+    "DRV/USD": {
+      "quantity": 1939.1941399261918,
+      "entry": 0.4894432006463999,
+      "stop": 0.4666138504355328,
+      "target": 0.5465165761735677,
+      "risk": 0.022829350210867128,
+      "atr": 0.0061128980571428715,
+      "tier": "STRONG",
+      "score": 8,
+      "r_multiple": 2.5,
+      "target_profit": 93.55,
+      "net_at_stop": 60.0,
+      "setup": "BREAKOUT",
+      "rsi": 68.42944459208086,
+      "confirmations": 3,
+      "entry_cost": 956.7183896123797,
+      "entry_time": 1795600897,
+      "signal_time": 1795599900
+    }
   },
-  "last_processed_5m": {},
+  "last_signal": {
+    "BLESS/USD": 1795562100,
+    "DRV/USD": 1795599900
+  },
+  "last_processed_5m": {
+    "DRV/USD": 1795600500
+  },
   "last_exit": {
     "BLESS/USD": 1795590144.5190423
   },
