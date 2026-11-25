@@ -1,43 +1,21 @@
 {
   "version": "V8.4-KRAKEN",
-  "cash": 1073.7076559235516,
-  "positions": {
-    "VVV/USD": {
-      "quantity": 22.771739830773985,
-      "entry": 35.113318560319996,
-      "stop": 33.05662549757567,
-      "target": 39.22670468580864,
-      "risk": 2.0566930627443227,
-      "atr": 0.6450997485714295,
-      "tier": "MEDIUM",
-      "score": 7,
-      "r_multiple": 2.0,
-      "target_profit": 79.24,
-      "net_at_stop": 60.0,
-      "setup": "SWEEP",
-      "rsi": 45.924690181124916,
-      "confirmations": 3,
-      "entry_cost": 805.9880856894998,
-      "entry_time": 1795620667,
-      "signal_time": 1795619700
-    }
-  },
+  "cash": 1958.9357727081824,
+  "positions": {},
   "last_signal": {
     "BLESS/USD": 1795562100,
     "DRV/USD": 1795599900,
     "VVV/USD": 1795619700
   },
-  "last_processed_5m": {
-    "VVV/USD": 1795631700
-  },
+  "last_processed_5m": {},
   "last_exit": {
     "BLESS/USD": 1795590144.5190423,
     "DRV/USD": 1795616009.8962693
   },
-  "total_trades": 2,
-  "winning_trades": 0,
+  "total_trades": 3,
+  "winning_trades": 1,
   "losing_trades": 2,
-  "realized_pnl": -120.30425838694873,
-  "gross_profit": 0.0,
+  "realized_pnl": -41.0642272918177,
+  "gross_profit": 79.24003109513103,
   "gross_loss": 120.30425838694873
 }
