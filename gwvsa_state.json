@@ -1,38 +1,18 @@
 {
   "version": "V8.4-KRAKEN",
-  "cash": 1133.7205643186123,
-  "positions": {
-    "BLESS/USD": {
-      "quantity": 34077.73803109195,
-      "entry": 0.025218933289549997,
-      "stop": 0.023874685688853998,
-      "target": 0.028579552291289997,
-      "risk": 0.0013442476006959997,
-      "atr": 0.0004114691249999998,
-      "tier": "STRONG",
-      "score": 9,
-      "r_multiple": 2.5,
-      "target_profit": 98.89,
-      "net_at_stop": 60.0,
-      "setup": "SWEEP",
-      "rsi": 38.87814313346232,
-      "confirmations": 3,
-      "entry_cost": 866.2794356813877,
-      "entry_time": 1795563766,
-      "signal_time": 1795562100
-    }
-  },
+  "cash": 1940.0,
+  "positions": {},
   "last_signal": {
     "BLESS/USD": 1795562100
   },
-  "last_processed_5m": {
-    "BLESS/USD": 1795585500
+  "last_processed_5m": {},
+  "last_exit": {
+    "BLESS/USD": 1795590144.5190423
   },
-  "last_exit": {},
-  "total_trades": 0,
+  "total_trades": 1,
   "winning_trades": 0,
-  "losing_trades": 0,
-  "realized_pnl": 0.0,
+  "losing_trades": 1,
+  "realized_pnl": -60.000000000000114,
   "gross_profit": 0.0,
-  "gross_loss": 0.0
+  "gross_loss": 60.000000000000114
 }
