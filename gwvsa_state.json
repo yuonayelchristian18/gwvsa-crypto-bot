@@ -1,6 +1,6 @@
 {
   "version": "V8.4-KRAKEN",
-  "cash": 1004.6174659505704,
+  "cash": 236.25411147516115,
   "positions": {
     "DRV/USD": {
       "quantity": 1585.1899041568715,
@@ -20,16 +20,37 @@
       "entry_cost": 833.8887048232933,
       "entry_time": 1795663757,
       "signal_time": 1795662000
+    },
+    "REKT/USD": {
+      "quantity": 6827582977.401775,
+      "entry": 1.11644960616e-07,
+      "stop": 1.0474404889221001e-07,
+      "target": 1.2544678406358e-07,
+      "risk": 6.900911723789996e-09,
+      "atr": 2.376620999999994e-09,
+      "tier": "MEDIUM",
+      "score": 6,
+      "r_multiple": 2.0,
+      "target_profit": 80.01,
+      "net_at_stop": 60.00000000000001,
+      "setup": "SWEEP",
+      "rsi": 47.72727272727272,
+      "confirmations": 2,
+      "entry_cost": 768.3633544754092,
+      "entry_time": 1795668070,
+      "signal_time": 1795666500
     }
   },
   "last_signal": {
     "BLESS/USD": 1795653000,
     "DRV/USD": 1795662000,
     "VVV/USD": 1795619700,
-    "PIEVERSE/USD": 1795653000
+    "PIEVERSE/USD": 1795653000,
+    "REKT/USD": 1795666500
   },
   "last_processed_5m": {
-    "DRV/USD": 1795663200
+    "DRV/USD": 1795667400,
+    "REKT/USD": 1795667700
   },
   "last_exit": {
     "BLESS/USD": 1795659306.1081388,
