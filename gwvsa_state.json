@@ -1,44 +1,45 @@
 {
   "version": "V8.4-KRAKEN",
-  "cash": 994.3031154972538,
+  "cash": 1004.6174659505704,
   "positions": {
-    "PIEVERSE/USD": {
-      "quantity": 171.89263478133378,
-      "entry": 5.218529820625,
-      "stop": 4.958267001285264,
-      "target": 5.869186868974341,
-      "risk": 0.2602628193397365,
-      "atr": 0.060211112500000094,
+    "DRV/USD": {
+      "quantity": 1585.1899041568715,
+      "entry": 0.5218747219686,
+      "stop": 0.4926290858723234,
+      "target": 0.5949888122092913,
+      "risk": 0.02924563609627656,
+      "atr": 0.0032674274642857104,
       "tier": "STRONG",
-      "score": 8,
+      "score": 9,
       "r_multiple": 2.5,
-      "target_profit": 95.09,
-      "net_at_stop": 60.0,
+      "target_profit": 100.8,
+      "net_at_stop": 60.00000000000001,
       "setup": "BREAKOUT",
-      "rsi": 55.84731997834324,
+      "rsi": 70.78922040423504,
       "confirmations": 3,
-      "entry_cost": 904.2030552766099,
-      "entry_time": 1795654600,
-      "signal_time": 1795653000
+      "entry_cost": 833.8887048232933,
+      "entry_time": 1795663757,
+      "signal_time": 1795662000
     }
   },
   "last_signal": {
     "BLESS/USD": 1795653000,
-    "DRV/USD": 1795599900,
+    "DRV/USD": 1795662000,
     "VVV/USD": 1795619700,
     "PIEVERSE/USD": 1795653000
   },
   "last_processed_5m": {
-    "PIEVERSE/USD": 1795659000
+    "DRV/USD": 1795663200
   },
   "last_exit": {
     "BLESS/USD": 1795659306.1081388,
-    "DRV/USD": 1795616009.8962693
+    "DRV/USD": 1795616009.8962693,
+    "PIEVERSE/USD": 1795663676.382258
   },
-  "total_trades": 4,
+  "total_trades": 5,
   "winning_trades": 1,
-  "losing_trades": 3,
-  "realized_pnl": -101.49382922613643,
+  "losing_trades": 4,
+  "realized_pnl": -161.49382922613643,
   "gross_profit": 79.24003109513103,
-  "gross_loss": 180.73386032126746
+  "gross_loss": 240.73386032126746
 }
