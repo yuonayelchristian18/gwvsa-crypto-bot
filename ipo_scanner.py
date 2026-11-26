@@ -1,8 +1,9 @@
-"""IPO scanner v2: Finnhub + Nasdaq calendars -> daily Telegram alert. No orders."""
+"""IPO scanner v3: Finnhub + Nasdaq calendars + news -> daily Telegram alert. No orders."""
 import json
 import os
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 
 DAYS_BACK = 7
@@ -96,6 +97,43 @@ def merge(finnhub_rows, nasdaq_rows):
     return merged
 
 
+NEWS_QUERIES = (
+    ('US', '(NYSE OR Nasdaq) IPO when:7d'),
+    ('Canada', '(TSX OR "TSX Venture") IPO when:7d'),
+    ('UK', 'London Stock Exchange IPO when:7d'),
+    ('Europe', '(Euronext OR Frankfurt OR Swiss) IPO when:7d'),
+    ('India', '(NSE OR BSE) India IPO when:7d'),
+    ('China and Hong Kong', '("Hong Kong" OR Shanghai OR Shenzhen) IPO when:7d'),
+    ('Japan and Korea', '(Tokyo OR Korea) IPO when:7d'),
+    ('Southeast Asia', '(Singapore OR Indonesia OR Malaysia) IPO when:7d'),
+    ('Australia', 'ASX IPO when:7d'),
+    ('Middle East', '(Saudi OR Dubai OR "Abu Dhabi") IPO when:7d'),
+    ('Africa', '(Ghana OR Nigeria OR Kenya OR Johannesburg) IPO when:7d'),
+    ('Latin America', '(Brazil OR Mexico) IPO when:7d'),
+)
+
+
+def parse_news(xml_text, limit=3):
+    items = ET.fromstring(xml_text).findall("./channel/item")[:limit]
+    return [f"• {i.findtext('title')}\n  {i.findtext('link')}" for i in items]
+
+
+def news_section(notes):
+    parts = ["\nNEWS HEADLINES (unverified)"]
+    for region, query in NEWS_QUERIES:
+        url = "https://news.google.com/rss/search?" + urllib.parse.urlencode(
+            {"q": query, "hl": "en-CA", "gl": "CA", "ceid": "CA:en"})
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": UA["User-Agent"]})
+            with urllib.request.urlopen(request, timeout=25) as response:
+                rows = parse_news(response.read())
+            parts += [f"\n{region}:"] + (rows or ["none found"])
+        except Exception as error:
+            print(f"{region} news failed:", type(error).__name__, error)
+            notes.append(f"{region} news failed")
+    return "\n".join(parts)
+
+
 def is_trading(symbol):
     try:
         quote = finnhub("quote", symbol=symbol)
@@ -112,8 +150,10 @@ def line(ipo, extra=""):
 
 
 def build_report(ipos, today, quote=is_trading):
-    listed, priced, watch = [], [], []
-    for ipo in sorted(filter(wanted, ipos),
+    listed, priced, watch, filed = [], [], [], []
+    keep = (i for i in ipos if wanted(i)
+            or (i.get("status") == "filed" and not i.get("exchange")))
+    for ipo in sorted(keep,
                       key=lambda i: i.get("date") or "9999"):
         status = ipo.get("status")
         date = ipo.get("date") or ""
@@ -124,13 +164,17 @@ def build_report(ipos, today, quote=is_trading):
                 listed.append(line(ipo, f" | last ${last:.2f}"))
             else:
                 priced.append(line(ipo))
-        elif status in ("expected", "filed") and (not date or date >= today):
+        elif status == "expected" and (not date or date >= today):
             watch.append(line(ipo))
+        elif status == "filed":
+            filed.append(f"• {ipo.get('symbol') or '?'} - {ipo.get('name')}"
+                         f" (filed {date or 'date unknown'})")
 
-    parts = [f"IPO scan {today} (US, unscored)"]
+    parts = [f"IPO scan {today} worldwide (unscored)"]
     for title, rows in (("LISTED (has a quote)", listed),
                         ("PRICED, no quote yet", priced),
-                        ("UPCOMING / WATCHLIST, not confirmed", watch)):
+                        ("UPCOMING / WATCHLIST, not confirmed", watch),
+                        ("FILED, no listing date (newest 15)", filed[::-1][:15])):
         parts.append(f"\n{title}: {len(rows)}")
         parts.extend(rows)
     return "\n".join(parts)
@@ -172,6 +216,7 @@ def main():
             notes.append(f"Nasdaq feed failed for {year}-{month:02d}")
 
     report = build_report(merge(fin_rows, nas_rows), str(now))
+    report += "\n" + news_section(notes)
     if notes:
         report += "\n\nNote: " + "; ".join(notes)
     print(report)
