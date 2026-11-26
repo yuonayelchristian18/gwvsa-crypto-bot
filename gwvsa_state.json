@@ -1,26 +1,7 @@
 {
   "version": "V8.4-KRAKEN",
-  "cash": 271.0900595542993,
+  "cash": 994.3031154972538,
   "positions": {
-    "BLESS/USD": {
-      "quantity": 31099.40415555418,
-      "entry": 0.02499801178875,
-      "stop": 0.02347982909272,
-      "target": 0.028793468528825,
-      "risk": 0.0015181826960300009,
-      "atr": 0.0003383765000000001,
-      "tier": "STRONG",
-      "score": 8,
-      "r_multiple": 2.5,
-      "target_profit": 103.77,
-      "net_at_stop": 60.0,
-      "setup": "BREAKOUT",
-      "rsi": 53.50799289520432,
-      "confirmations": 3,
-      "entry_cost": 783.6426578772732,
-      "entry_time": 1795654548,
-      "signal_time": 1795653000
-    },
     "PIEVERSE/USD": {
       "quantity": 171.89263478133378,
       "entry": 5.218529820625,
@@ -48,17 +29,16 @@
     "PIEVERSE/USD": 1795653000
   },
   "last_processed_5m": {
-    "BLESS/USD": 1795654200,
-    "PIEVERSE/USD": 1795654200
+    "PIEVERSE/USD": 1795659000
   },
   "last_exit": {
-    "BLESS/USD": 1795590144.5190423,
+    "BLESS/USD": 1795659306.1081388,
     "DRV/USD": 1795616009.8962693
   },
-  "total_trades": 3,
+  "total_trades": 4,
   "winning_trades": 1,
-  "losing_trades": 2,
-  "realized_pnl": -41.0642272918177,
+  "losing_trades": 3,
+  "realized_pnl": -101.49382922613643,
   "gross_profit": 79.24003109513103,
-  "gross_loss": 120.30425838694873
+  "gross_loss": 180.73386032126746
 }
