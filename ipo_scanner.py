@@ -1,12 +1,13 @@
-"""IPO scanner v3: Finnhub + Nasdaq calendars + news -> daily Telegram alert. No orders."""
+"""IPO scanner V10: Finnhub + Nasdaq calendars + news -> daily Telegram alert. No orders."""
 import json
 import os
+import time
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 
-DAYS_BACK = 7
+DAYS_BACK = 90
 DAYS_AHEAD = 30
 UA = {"User-Agent": "Mozilla/5.0 (IPO-Scanner)", "Accept": "application/json"}
 
@@ -98,24 +99,24 @@ def merge(finnhub_rows, nasdaq_rows):
 
 
 NEWS_QUERIES = (
-    ('US', '(NYSE OR Nasdaq) IPO when:7d'),
-    ('Canada', '(TSX OR "TSX Venture") IPO when:7d'),
-    ('UK', 'London Stock Exchange IPO when:7d'),
-    ('Europe', '(Euronext OR Frankfurt OR Swiss) IPO when:7d'),
-    ('India', '(NSE OR BSE) India IPO when:7d'),
-    ('China and Hong Kong', '("Hong Kong" OR Shanghai OR Shenzhen) IPO when:7d'),
-    ('Japan and Korea', '(Tokyo OR Korea) IPO when:7d'),
-    ('Southeast Asia', '(Singapore OR Indonesia OR Malaysia) IPO when:7d'),
-    ('Australia', 'ASX IPO when:7d'),
-    ('Middle East', '(Saudi OR Dubai OR "Abu Dhabi") IPO when:7d'),
-    ('Africa', '(Ghana OR Nigeria OR Kenya OR Johannesburg) IPO when:7d'),
-    ('Latin America', '(Brazil OR Mexico) IPO when:7d'),
+    ('US', '(NYSE OR Nasdaq) IPO when:2d'),
+    ('Canada', '(TSX OR "TSX Venture") IPO when:2d'),
+    ('UK', 'London Stock Exchange IPO when:2d'),
+    ('Europe', '(Euronext OR Frankfurt OR Swiss) IPO when:2d'),
+    ('India', '(NSE OR BSE) India IPO when:2d'),
+    ('China and Hong Kong', '("Hong Kong" OR Shanghai OR Shenzhen) IPO when:2d'),
+    ('Japan and Korea', '(Tokyo OR Korea) IPO when:2d'),
+    ('Southeast Asia', '(Singapore OR Indonesia OR Malaysia) IPO when:2d'),
+    ('Australia', 'ASX IPO when:2d'),
+    ('Middle East', '(Saudi OR Dubai OR "Abu Dhabi") IPO when:2d'),
+    ('Africa', '(Ghana OR Nigeria OR Kenya OR Johannesburg) IPO when:2d'),
+    ('Latin America', '(Brazil OR Mexico) IPO when:2d'),
 )
 
 
 def parse_news(xml_text, limit=3):
     items = ET.fromstring(xml_text).findall("./channel/item")[:limit]
-    return [f"• {i.findtext('title')}\n  {i.findtext('link')}" for i in items]
+    return [f"• {i.findtext('title')}" for i in items]
 
 
 def news_section(notes):
@@ -131,6 +132,50 @@ def news_section(notes):
         except Exception as error:
             print(f"{region} news failed:", type(error).__name__, error)
             notes.append(f"{region} news failed")
+    return "\n".join(parts)
+
+
+def score_metrics(m):
+    """0-100 from four checks. None if any number is missing."""
+    values = [m.get(k) for k in ("revenueGrowthTTMYoy", "netProfitMarginTTM",
+                                 "currentRatioQuarterly",
+                                 "totalDebt/totalEquityQuarterly", "psTTM")]
+    if any(v is None for v in values):
+        return None
+    growth, margin, current, debt, ps = values
+    clamp = lambda x: max(0.0, min(1.0, x))
+    return round(
+        30 * clamp(growth / 40)                    # 40%+ growth = full
+        + 30 * clamp(margin / 15)                  # 15%+ net margin = full
+        + 10 * clamp((current - 1) / 1)            # current ratio 2+ = full
+        + 10 * (clamp((2 - debt) / 1.5) if debt >= 0 else 0)
+        + 20 * (clamp((15 - ps) / 12) if ps > 0 else 0))  # P/S 3 or less = full
+
+
+def scorecard(ipos, today):
+    scored, unscored = [], []
+    for ipo in ipos:
+        date, symbol = ipo.get("date") or "", ipo.get("symbol")
+        if (ipo.get("status") != "priced" or not wanted(ipo) or not symbol
+                or not date or date > today
+                or "Acquisition" in (ipo.get("name") or "")):
+            continue
+        try:
+            time.sleep(1.1)  # stay under the free rate limit
+            data = finnhub("stock/metric", symbol=symbol, metric="all")
+            score = score_metrics(data.get("metric") or {})
+        except Exception as error:
+            print(f"{symbol}: metrics failed ({type(error).__name__})")
+            score = None
+        if score is None:
+            unscored.append(symbol)
+        else:
+            scored.append((score, symbol, ipo.get("name")))
+    parts = [f"\nSCORECARD, listed in last {DAYS_BACK} days (experimental)"]
+    parts += [f"• {sc}/100 {sym} - {name}"
+              for sc, sym, name in sorted(scored, reverse=True)[:10]] or ["none scored"]
+    parts.append(f"Unscored (missing data): {len(unscored)} "
+                 + ", ".join(unscored[:15]))
     return "\n".join(parts)
 
 
@@ -160,19 +205,17 @@ def build_report(ipos, today, quote=is_trading):
         if status == "priced":
             symbol = ipo.get("symbol")
             last = quote(symbol) if symbol and date and date <= today else None
-            if last:
-                listed.append(line(ipo, f" | last ${last:.2f}"))
-            else:
+            if not last and (not date or date >= today):
                 priced.append(line(ipo))
         elif status == "expected" and (not date or date >= today):
             watch.append(line(ipo))
         elif status == "filed":
             filed.append(f"• {ipo.get('symbol') or '?'} - {ipo.get('name')}"
-                         f" (filed {date or 'date unknown'})")
+                         " (listing date not set)"
+                         + (" [likely SPAC]" if "Acquisition Corp" in (ipo.get("name") or "") else ""))
 
-    parts = [f"IPO scan {today} worldwide (unscored)"]
-    for title, rows in (("LISTED (has a quote)", listed),
-                        ("PRICED, no quote yet", priced),
+    parts = [f"IPO scan V10 {today} worldwide"]
+    for title, rows in (("PRICED, not trading yet", [r for r in priced if r]),
                         ("UPCOMING / WATCHLIST, not confirmed", watch),
                         ("FILED, no listing date (newest 15)", filed[::-1][:15])):
         parts.append(f"\n{title}: {len(rows)}")
@@ -216,6 +259,14 @@ def main():
             notes.append(f"Nasdaq feed failed for {year}-{month:02d}")
 
     report = build_report(merge(fin_rows, nas_rows), str(now))
+    report += "\n" + scorecard(merge([dict(r) for r in fin_rows],
+                                     [dict(r) for r in nas_rows]), str(now))
+    counts = []
+    for name, rows in (("Finnhub", fin_rows), ("Nasdaq", nas_rows)):
+        c = [sum(r.get("status") == k for r in rows)
+             for k in ("priced", "expected", "filed")]
+        counts.append(f"{name}: priced {c[0]}, expected {c[1]}, filed {c[2]}")
+    report += "\n\nSOURCE CHECK\n" + "\n".join(counts)
     report += "\n" + news_section(notes)
     if notes:
         report += "\n\nNote: " + "; ".join(notes)
