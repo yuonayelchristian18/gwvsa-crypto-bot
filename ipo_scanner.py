@@ -1,4 +1,4 @@
-"""IPO scanner V10: Finnhub + Nasdaq calendars + news -> daily Telegram alert. No orders."""
+"""IPO scanner V11: Finnhub + Nasdaq calendars + news -> daily Telegram alert. No orders."""
 import json
 import os
 import time
@@ -152,6 +152,25 @@ def score_metrics(m):
         + 20 * (clamp((15 - ps) / 12) if ps > 0 else 0))  # P/S 3 or less = full
 
 
+def expected_check(rows, today):
+    """Show every 'expected' row from each source and why it was hidden."""
+    out = ["\nEXPECTED DEALS CHECK (before filters)"]
+    for r in rows:
+        if r.get("status") != "expected":
+            continue
+        date = r.get("date") or ""
+        if not wanted(r):
+            why = "hidden: exchange is not NYSE/Nasdaq"
+        elif date and date < today:
+            why = "hidden: date has passed"
+        else:
+            why = "passes filters"
+        out.append(f"• {r.get('symbol') or '?'} - {r.get('name')}\n"
+                   f"  {date or 'date TBA'} | {r.get('exchange') or 'exchange blank'}"
+                   f" | {r.get('source')} | {why}")
+    return "\n".join(out if len(out) > 1 else out + ["none returned"])
+
+
 def scorecard(ipos, today):
     scored, unscored = [], []
     for ipo in ipos:
@@ -214,7 +233,7 @@ def build_report(ipos, today, quote=is_trading):
                          " (listing date not set)"
                          + (" [likely SPAC]" if "Acquisition Corp" in (ipo.get("name") or "") else ""))
 
-    parts = [f"IPO scan V10 {today} worldwide"]
+    parts = [f"IPO scan V11 {today} worldwide"]
     for title, rows in (("PRICED, not trading yet", [r for r in priced if r]),
                         ("UPCOMING / WATCHLIST, not confirmed", watch),
                         ("FILED, no listing date (newest 15)", filed[::-1][:15])):
@@ -261,6 +280,7 @@ def main():
     report = build_report(merge(fin_rows, nas_rows), str(now))
     report += "\n" + scorecard(merge([dict(r) for r in fin_rows],
                                      [dict(r) for r in nas_rows]), str(now))
+    report += "\n" + expected_check(fin_rows + nas_rows, str(now))
     counts = []
     for name, rows in (("Finnhub", fin_rows), ("Nasdaq", nas_rows)):
         c = [sum(r.get("status") == k for r in rows)
