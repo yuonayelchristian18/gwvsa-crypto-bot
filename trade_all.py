@@ -5,10 +5,10 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
-START_BALANCE = 20000.0
+START_BALANCE = 2000.0
 RISK_USD = 20.0     # planned max loss per trade, fees included
 STOP_PCT = 0.01     # stop 1% from entry
-TARGET_PCT = 0.02   # target 2% from entry
+TARGET_PCT = 0.03   # target 3% from entry
 FEE = 0.004         # assumed fee per side; check your Kraken tier
 STATE = "gold_state.json"
 
@@ -85,6 +85,12 @@ def main():
         q = s["position"]
         messages.append(f"OPENED {'LONG' if side == 1 else 'SHORT'} ${size:.0f} at {price:.2f}, "
                         f"stop {q['stop']:.2f}, target {q['target']:.2f}")
+
+    q = s["position"]
+    if q:
+        gross = q["qty"] * (price - q["entry"]) * q["side"]
+        net = gross - q["qty"] * (price + q["entry"]) * FEE
+        print(f"OPEN: price {price:.2f}, P/L if closed now ${net:+.2f}")
 
     with open(STATE, "w") as f:
         json.dump(s, f, indent=1)
