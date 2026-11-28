@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 PAIR = "PEPEUSD"
 INTERVAL = 15              # chart minutes
 HTF = 240
-CAPITAL = 10000.0          # same as the Pine script
+CAPITAL = 2000.0          # same as the Pine script
 RISK_PCT = 0.01
 COST_RESERVE = 0.0005      # used for position sizing
 TICK = 0.000000001         # 1 tick slippage on market and stop fills
